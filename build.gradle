@@ -25,7 +25,7 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
     // Fabric API. This is technically optional, but you probably want it anyway.
-    // Required here for fabric-rendering-v1 (WorldRenderEvents) and keybindings.
+    // Required here for fabric-rendering-v1 (WorldRenderEvents).
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
     // Mod Menu integration (in-game config screen). Compile + dev-runtime only;
