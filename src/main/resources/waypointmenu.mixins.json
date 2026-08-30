@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "com.waypointmenu.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "RenderLayerInvoker",
+    "RenderPipelinesAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

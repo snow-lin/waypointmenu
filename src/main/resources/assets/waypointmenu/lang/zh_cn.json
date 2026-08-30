@@ -1,0 +1,58 @@
+{
+  "screen.waypointmenu.list.title": "路径点集",
+  "screen.waypointmenu.edit.title": "路径点编辑",
+  "screen.waypointmenu.edit.new_title": "新建地点",
+
+  "waypointmenu.button.add": "添加",
+  "waypointmenu.button.close": "关闭",
+  "waypointmenu.button.highlight": "高亮",
+  "waypointmenu.button.edit": "编辑",
+  "waypointmenu.button.delete": "删除",
+  "waypointmenu.button.run": "执行",
+  "waypointmenu.button.save": "保存",
+  "waypointmenu.button.cancel": "取消",
+  "waypointmenu.button.add_command": "添加指令",
+  "waypointmenu.button.remove_command": "移除",
+
+  "waypointmenu.field.name": "名称",
+  "waypointmenu.field.description": "描述",
+  "waypointmenu.field.dimension": "维度",
+  "waypointmenu.field.color": "颜色",
+  "waypointmenu.field.commands": "指令集",
+  "waypointmenu.field.coords": "X Y Z",
+
+  "waypointmenu.dimension.overworld": "主世界",
+  "waypointmenu.dimension.nether": "下界",
+  "waypointmenu.dimension.end": "末地",
+
+  "waypointmenu.filter.all": "全部",
+
+  "waypointmenu.message.recorded": "已记录地点：%s",
+  "waypointmenu.message.empty": "暂无地点，点击下方「添加」记录当前位置",
+  "waypointmenu.message.deleted": "已删除地点",
+  "waypointmenu.message.saved": "已保存",
+  "waypointmenu.message.highlight_on": "已开启高亮：%s",
+  "waypointmenu.message.highlight_off": "已关闭高亮：%s",
+  "waypointmenu.message.commands_run": "正在执行 %d 条指令",
+  "waypointmenu.message.no_commands": "该地点没有指令",
+  "waypointmenu.message.invalid_number": "无效的数字：%s",
+
+  "waypointmenu.tooltip.run": "执行指令集",
+  "waypointmenu.tooltip.highlight": "切换高亮",
+  "waypointmenu.tooltip.edit": "编辑",
+  "waypointmenu.tooltip.delete": "删除",
+  "waypointmenu.tooltip.add": "记录当前位置",
+
+  "waypointmenu.placeholder.command": "/指令 或 #sleep <ticks>",
+  "waypointmenu.placeholder.description": "为该路径点增加描述",
+
+  "screen.waypointmenu.config.title": "地点菜单设置",
+  "waypointmenu.config.opacity": "高亮不透明度",
+  "waypointmenu.config.distance": "标签显示距离",
+  "waypointmenu.config.show_label": "显示标签",
+  "waypointmenu.config.open_main": "打开主界面",
+  "waypointmenu.config.keybind": "按键绑定",
+  "waypointmenu.config.keybind_awaiting": "按下按键…",
+  "waypointmenu.config.on": "开启",
+  "waypointmenu.config.off": "关闭"
+}

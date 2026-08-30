@@ -1,0 +1,58 @@
+{
+  "screen.waypointmenu.list.title": "Waypoint Set",
+  "screen.waypointmenu.edit.title": "Waypoint Edit",
+  "screen.waypointmenu.edit.new_title": "New Waypoint",
+
+  "waypointmenu.button.add": "Add",
+  "waypointmenu.button.close": "Close",
+  "waypointmenu.button.highlight": "Highlight",
+  "waypointmenu.button.edit": "Edit",
+  "waypointmenu.button.delete": "Delete",
+  "waypointmenu.button.run": "Run",
+  "waypointmenu.button.save": "Save",
+  "waypointmenu.button.cancel": "Cancel",
+  "waypointmenu.button.add_command": "Add Command",
+  "waypointmenu.button.remove_command": "Remove",
+
+  "waypointmenu.field.name": "Name",
+  "waypointmenu.field.description": "Description",
+  "waypointmenu.field.dimension": "Dimension",
+  "waypointmenu.field.color": "Color",
+  "waypointmenu.field.commands": "Commands",
+  "waypointmenu.field.coords": "X Y Z",
+
+  "waypointmenu.dimension.overworld": "Overworld",
+  "waypointmenu.dimension.nether": "The Nether",
+  "waypointmenu.dimension.end": "The End",
+
+  "waypointmenu.filter.all": "All",
+
+  "waypointmenu.message.recorded": "Recorded location: %s",
+  "waypointmenu.message.empty": "No waypoints yet — click Add to record your position",
+  "waypointmenu.message.deleted": "Deleted waypoint",
+  "waypointmenu.message.saved": "Saved",
+  "waypointmenu.message.highlight_on": "Highlight on: %s",
+  "waypointmenu.message.highlight_off": "Highlight off: %s",
+  "waypointmenu.message.commands_run": "Executing %d command(s)",
+  "waypointmenu.message.no_commands": "This waypoint has no commands",
+  "waypointmenu.message.invalid_number": "Invalid number: %s",
+
+  "waypointmenu.tooltip.run": "Run command set",
+  "waypointmenu.tooltip.highlight": "Toggle highlight",
+  "waypointmenu.tooltip.edit": "Edit",
+  "waypointmenu.tooltip.delete": "Delete",
+  "waypointmenu.tooltip.add": "Record current position",
+
+  "waypointmenu.placeholder.command": "/command or #sleep <ticks>",
+  "waypointmenu.placeholder.description": "Add a description for this waypoint",
+
+  "screen.waypointmenu.config.title": "Waypoint Menu Settings",
+  "waypointmenu.config.opacity": "Highlight opacity",
+  "waypointmenu.config.distance": "Label distance",
+  "waypointmenu.config.show_label": "Show label",
+  "waypointmenu.config.open_main": "Open Main Screen",
+  "waypointmenu.config.keybind": "Keybinding",
+  "waypointmenu.config.keybind_awaiting": "Press a key…",
+  "waypointmenu.config.on": "On",
+  "waypointmenu.config.off": "Off"
+}
