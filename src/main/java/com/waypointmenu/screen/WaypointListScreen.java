@@ -1,18 +1,26 @@
 package com.waypointmenu.screen;
 
 import com.waypointmenu.command.CommandSetExecutor;
+import com.waypointmenu.config.WaypointConfig;
 import com.waypointmenu.data.Waypoint;
 import com.waypointmenu.data.WaypointManager;
 import com.waypointmenu.ui.Ui;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
+//? if >=1.21.11 {
 import net.minecraft.client.gui.Click;
+//?}
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
+//? if >=1.21.6 {
 import org.joml.Matrix3x2fStack;
+//?} else {
+import net.minecraft.client.util.math.MatrixStack;
+//?}
 
 import java.util.ArrayList;
 import java.util.List;
@@ -114,6 +122,23 @@ public class WaypointListScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        // Draw the background first so it stays beneath the overlay text: on
+        // 1.20.4/1.21.1/1.21.4 the GUI vertex provider flushes its layers in an
+        // order that would otherwise paint the background on top of the text,
+        // veiling (in-world) or hiding (at the menu) it.
+        //? if >=1.20.2 {
+        //? if <1.21.5 {
+        //? if <1.20.6 {
+        // 1.20.4 iterates its GUI layers in HashMap order, so even drawn first
+        // the vanilla background texture can land on top; draw a fill-layer
+        // gradient instead.
+        context.fillGradient(0, 0, this.width, this.height, 0xFF1E1E2A, 0xFF0E0E16);
+        //?} else {
+        super.renderBackground(context, mouseX, mouseY, delta);
+        //?}
+        //?}
+        //?}
+
         // Dim the world behind the overlay.
         context.fill(0, 0, this.width, this.height, 0x80000000);
 
@@ -122,12 +147,21 @@ public class WaypointListScreen extends Screen {
 
         // Heading centered above the panel (sidebar + list area).
         float titleScale = 1.5f;
+        //? if >=1.21.6 {
         Matrix3x2fStack matrices = context.getMatrices();
         matrices.pushMatrix();
         matrices.scale(titleScale, titleScale);
         int titleCenterX = (int) (this.width / (2 * titleScale));
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, titleCenterX, 5, 0xFFFFFFFF);
         matrices.popMatrix();
+        //?} else {
+        MatrixStack matrices = context.getMatrices();
+        matrices.push();
+        matrices.scale(titleScale, titleScale, 1.0f);
+        int titleCenterX = (int) (this.width / (2 * titleScale));
+        context.drawCenteredTextWithShadow(this.textRenderer, this.title, titleCenterX, 5, 0xFFFFFFFF);
+        matrices.pop();
+        //?}
 
         // Sidebar: dimension filter with a divider separating it from the list.
         context.fill(listLeft(), listTop, listLeft() + 1, listBottom, 0x1EFFFFFF);
@@ -190,6 +224,19 @@ public class WaypointListScreen extends Screen {
 
         super.render(context, mouseX, mouseY, delta);
     }
+
+    //? if >=1.20.2 {
+    //? if <1.21.5 {
+    /**
+     * Neutralized: the background is drawn manually at the top of {@link #render}
+     * so it stays beneath the overlay text. Drawing it again here (where the base
+     * {@code Screen.render} runs it) would repaint it on top of the text.
+     */
+    @Override
+    public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
+    }
+    //?}
+    //?}
 
     private void renderRow(DrawContext context, int mouseX, int mouseY, Waypoint wp, int y) {
         boolean highlighted = manager.isHighlighted(wp);
@@ -255,7 +302,12 @@ public class WaypointListScreen extends Screen {
         } else if (mouseX >= delX && mouseX < delX + BTN && mouseY >= btnY && mouseY < btnY + BTN) {
             context.drawTooltip(this.textRenderer, Text.translatable("waypointmenu.tooltip.delete"), mouseX, mouseY);
         } else if (mouseX >= left && mouseX < panelX + PANEL_W && mouseY >= y && mouseY < y + ROW_HEIGHT) {
-            context.drawTooltip(this.textRenderer, Text.translatable("waypointmenu.tooltip.highlight"), mouseX, mouseY);
+            // With right-click teleport disabled, the row only toggles highlight;
+            // otherwise it advertises both the left-click toggle and right-click teleport.
+            Text rowTooltip = Text.translatable(WaypointConfig.get().rightClickTeleport
+                    ? "waypointmenu.tooltip.row"
+                    : "waypointmenu.tooltip.highlight");
+            context.drawTooltip(this.textRenderer, rowTooltip, mouseX, mouseY);
         }
     }
 
@@ -278,74 +330,169 @@ public class WaypointListScreen extends Screen {
         context.drawCenteredTextWithShadow(this.textRenderer, Text.literal(glyph), x + BTN / 2, y + 3, color);
     }
 
+    //? if >=1.21.11 {
     @Override
     public boolean mouseClicked(Click click, boolean bl) {
-        if (click.button() == 0) {
-            double mouseX = click.x();
-            double mouseY = click.y();
-
-            // Sidebar filter buttons.
-            for (int i = 0; i < FILTER_KEYS.length; i++) {
-                int bx = sidebarBtnX();
-                int by = sidebarBtnY(i);
-                if (mouseX >= bx && mouseX < bx + SB_BTN_W && mouseY >= by && mouseY < by + SB_BTN_H) {
-                    if (filterIndex != i) {
-                        filterIndex = i;
-                        scrollOffset = 0;
-                    }
-                    return true;
-                }
-            }
-
-            for (Row row : rows) {
-                if (mouseX >= row.hlX && mouseX < row.hlX + BTN && mouseY >= row.btnY && mouseY < row.btnY + BTN) {
-                    toggleHighlight(row.waypoint);
-                    return true;
-                }
-                if (mouseX >= row.delX && mouseX < row.delX + BTN && mouseY >= row.btnY && mouseY < row.btnY + BTN) {
-                    delete(row.waypoint);
-                    return true;
-                }
-                if (mouseX >= row.editX && mouseX < row.editX + BTN && mouseY >= row.btnY && mouseY < row.btnY + BTN) {
-                    openEditor(row.waypoint);
-                    return true;
-                }
-                if (mouseX >= row.runX && mouseX < row.runX + BTN && mouseY >= row.btnY && mouseY < row.btnY + BTN) {
-                    runCommands(row.waypoint);
-                    return true;
-                }
-                // Row body -> begin a potential drag (long-press to reorder).
-                if (mouseX >= listLeft() && mouseX < panelX + PANEL_W && mouseY >= row.y && mouseY < row.y + ROW_HEIGHT) {
-                    dragWp = row.waypoint;
-                    dragActive = false;
-                    dragStartY = mouseY;
-                    dragMouseY = mouseY;
-                    return true;
-                }
-            }
+        if (click.button() == 0 && handleClick(click.x(), click.y())) {
+            return true;
+        }
+        if (click.button() == 1 && handleRightClick(click.x(), click.y())) {
+            return true;
         }
         return super.mouseClicked(click, bl);
     }
+    //?} else {
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button == 0 && handleClick(mouseX, mouseY)) {
+            return true;
+        }
+        if (button == 1 && handleRightClick(mouseX, mouseY)) {
+            return true;
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+    //?}
 
+    /** Shared click handling for the era-specific mouseClicked signatures. */
+    private boolean handleClick(double mouseX, double mouseY) {
+        // Sidebar filter buttons.
+        for (int i = 0; i < FILTER_KEYS.length; i++) {
+            int bx = sidebarBtnX();
+            int by = sidebarBtnY(i);
+            if (mouseX >= bx && mouseX < bx + SB_BTN_W && mouseY >= by && mouseY < by + SB_BTN_H) {
+                if (filterIndex != i) {
+                    filterIndex = i;
+                    scrollOffset = 0;
+                }
+                return true;
+            }
+        }
+
+        for (Row row : rows) {
+            if (mouseX >= row.hlX && mouseX < row.hlX + BTN && mouseY >= row.btnY && mouseY < row.btnY + BTN) {
+                toggleHighlight(row.waypoint);
+                return true;
+            }
+            if (mouseX >= row.delX && mouseX < row.delX + BTN && mouseY >= row.btnY && mouseY < row.btnY + BTN) {
+                delete(row.waypoint);
+                return true;
+            }
+            if (mouseX >= row.editX && mouseX < row.editX + BTN && mouseY >= row.btnY && mouseY < row.btnY + BTN) {
+                openEditor(row.waypoint);
+                return true;
+            }
+            if (mouseX >= row.runX && mouseX < row.runX + BTN && mouseY >= row.btnY && mouseY < row.btnY + BTN) {
+                runCommands(row.waypoint);
+                return true;
+            }
+            // Row body -> begin a potential drag (long-press to reorder).
+            if (mouseX >= listLeft() && mouseX < panelX + PANEL_W && mouseY >= row.y && mouseY < row.y + ROW_HEIGHT) {
+                dragWp = row.waypoint;
+                dragActive = false;
+                dragStartY = mouseY;
+                dragMouseY = mouseY;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Right-click a row body (left of the action buttons) -> teleport to it. */
+    private boolean handleRightClick(double mouseX, double mouseY) {
+        for (Row row : rows) {
+            if (mouseX >= listLeft() && mouseX < row.hlX
+                    && mouseY >= row.y && mouseY < row.y + ROW_HEIGHT) {
+                teleport(row.waypoint);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Teleports the player to a waypoint, across dimensions when needed. */
+    private void teleport(Waypoint wp) {
+        if (!WaypointConfig.get().rightClickTeleport) {
+            return;
+        }
+        MinecraftClient client = this.client;
+        if (client == null || client.player == null || client.world == null) {
+            return;
+        }
+        ClientPlayNetworkHandler handler = client.getNetworkHandler();
+        if (handler == null) {
+            return;
+        }
+        String currentDim = client.world.getRegistryKey().getValue().toString();
+        String coords = String.format("%.1f %d %.1f", wp.x + 0.5, wp.y, wp.z + 0.5);
+        // Same-dimension teleport uses a plain /tp; cross-dimension wraps it in
+        // /execute in <dimension> so the destination resolves in that world.
+        if (currentDim.equals(wp.dimension)) {
+            handler.sendChatCommand("tp " + coords);
+        } else if (WaypointConfig.get().crossDimensionTeleport) {
+            handler.sendChatCommand("execute in " + wp.dimension + " run tp @s " + coords);
+        } else {
+            client.player.sendMessage(Text.translatable("waypointmenu.message.cross_dimension_off"), true);
+            return;
+        }
+        client.player.sendMessage(Text.translatable("waypointmenu.message.teleported", wp.name), true);
+    }
+
+    //? if >=1.21.11 {
     @Override
     public boolean mouseDragged(Click click, double deltaX, double deltaY) {
+        if (handleDrag(click.x(), click.y())) {
+            return true;
+        }
+        return super.mouseDragged(click, deltaX, deltaY);
+    }
+    //?} else {
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+        if (handleDrag(mouseX, mouseY)) {
+            return true;
+        }
+        return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+    }
+    //?}
+
+    /** Shared drag handling for the era-specific mouseDragged signatures. */
+    private boolean handleDrag(double mouseX, double mouseY) {
         if (dragWp != null) {
-            dragMouseY = click.y();
-            if (!dragActive && Math.abs(click.y() - dragStartY) > 4.0) {
+            dragMouseY = mouseY;
+            if (!dragActive && Math.abs(mouseY - dragStartY) > 4.0) {
                 dragActive = true;
             }
             if (dragActive) {
-                double relY = click.y() - listTop + scrollOffset;
+                double relY = mouseY - listTop + scrollOffset;
                 int slot = (int) Math.floor(relY / (double) ROW_HEIGHT);
                 dragTargetSlot = Math.max(0, Math.min(slot, filterWaypoints().size()));
                 return true;
             }
         }
-        return super.mouseDragged(click, deltaX, deltaY);
+        return false;
     }
 
+    //? if >=1.21.11 {
     @Override
     public boolean mouseReleased(Click click) {
+        if (handleRelease()) {
+            return true;
+        }
+        return super.mouseReleased(click);
+    }
+    //?} else {
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (handleRelease()) {
+            return true;
+        }
+        return super.mouseReleased(mouseX, mouseY, button);
+    }
+    //?}
+
+    /** Shared release handling for the era-specific mouseReleased signatures. */
+    private boolean handleRelease() {
         if (dragWp != null) {
             Waypoint wp = dragWp;
             boolean wasActive = dragActive;
@@ -365,14 +512,22 @@ public class WaypointListScreen extends Screen {
             }
             return true;
         }
-        return super.mouseReleased(click);
+        return false;
     }
 
+    //? if >=1.20.2 {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         scrollOffset = Math.max(0, Math.min(scrollOffset - (int) (verticalAmount * ROW_HEIGHT), maxScroll));
         return true;
     }
+    //?} else {
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+        scrollOffset = Math.max(0, Math.min(scrollOffset - (int) (amount * ROW_HEIGHT), maxScroll));
+        return true;
+    }
+    //?}
 
     @Override
     public boolean shouldPause() {

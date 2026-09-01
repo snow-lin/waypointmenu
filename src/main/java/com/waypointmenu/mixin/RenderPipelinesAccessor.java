@@ -1,3 +1,4 @@
+//? if >=1.21.5 {
 package com.waypointmenu.mixin;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
@@ -8,7 +9,8 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 /**
  * Exposes the private {@code POSITION_COLOR_SNIPPET} render pipeline snippet so
  * we can reuse it (blend translucent, no depth write, POSITION_COLOR quads) for
- * the highlight beam and only change the depth test.
+ * the highlight beam and only change the depth test. Only present in the
+ * 1.21.5+ era (older versions build the layer via {@code RenderLayer.of}).
  */
 @Mixin(RenderPipelines.class)
 public interface RenderPipelinesAccessor {
@@ -17,3 +19,4 @@ public interface RenderPipelinesAccessor {
         throw new AssertionError();
     }
 }
+//?}

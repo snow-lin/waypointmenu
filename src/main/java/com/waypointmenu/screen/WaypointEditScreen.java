@@ -3,11 +3,15 @@ package com.waypointmenu.screen;
 import com.waypointmenu.data.Waypoint;
 import com.waypointmenu.data.WaypointManager;
 import com.waypointmenu.ui.Ui;
+//? if >=1.21.11 {
 import net.minecraft.client.gui.Click;
+//?}
+//? if >=1.21.5 {
+import net.minecraft.client.gui.widget.EditBoxWidget;
+//?}
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.EditBoxWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
 
@@ -81,7 +85,11 @@ public class WaypointEditScreen extends Screen {
     private boolean updating = false;
 
     private TextFieldWidget nameField;
+    //? if >=1.21.5 {
     private EditBoxWidget descriptionField;
+    //?} else {
+    private TextFieldWidget descriptionField;
+    //?}
     private ButtonWidget dimButton;
     private TextFieldWidget xField;
     private TextFieldWidget yField;
@@ -100,9 +108,14 @@ public class WaypointEditScreen extends Screen {
 
     @Override
     protected void init() {
+        //? if >=1.21.5 {
         // Fit the description box to whatever vertical space the screen offers.
         int available = this.height - 2 * MARGIN;
         descH = Math.min(DESC_MAX_H, Math.max(DESC_MIN_H, available - FIXED_H));
+        //?} else {
+        // Pre-1.21.3 has no multi-line edit box; a single-line field is used.
+        descH = FIELD_H;
+        //?}
 
         int px = panelX();
         int py = panelY();
@@ -157,6 +170,7 @@ public class WaypointEditScreen extends Screen {
             addDrawableChild(insert);
         }
 
+        //? if >=1.21.5 {
         // Multi-line description box: auto-wraps and scrolls past its visible lines.
         // Note: build()'s last argument is the narration message, not the text —
         // the initial text must be set explicitly via setText().
@@ -170,6 +184,12 @@ public class WaypointEditScreen extends Screen {
                 .hasBackground(true)
                 .hasOverlay(true)
                 .build(this.textRenderer, PANEL_W - 2 * PAD, descH, Text.translatable("waypointmenu.field.description"));
+        //?} else {
+        // Pre-1.21.3: single-line description field (multi-line box is unavailable).
+        descriptionField = new TextFieldWidget(this.textRenderer, px + PAD, py + DESC_BOX_Y, PANEL_W - 2 * PAD, FIELD_H, Text.empty());
+        descriptionField.setMaxLength(256);
+        descriptionField.setPlaceholder(Text.translatable("waypointmenu.placeholder.description"));
+        //?}
         descriptionField.setText(waypoint.description == null ? "" : waypoint.description);
         addDrawableChild(descriptionField);
 
@@ -234,6 +254,23 @@ public class WaypointEditScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        // Draw the background first so it stays beneath the overlay text: on
+        // 1.20.4/1.21.1/1.21.4 the GUI vertex provider flushes its layers in an
+        // order that would otherwise paint the background on top of the text,
+        // veiling (in-world) or hiding (at the menu) it.
+        //? if >=1.20.2 {
+        //? if <1.21.5 {
+        //? if <1.20.6 {
+        // 1.20.4 iterates its GUI layers in HashMap order, so even drawn first
+        // the vanilla background texture can land on top; draw a fill-layer
+        // gradient instead.
+        context.fillGradient(0, 0, this.width, this.height, 0xFF1E1E2A, 0xFF0E0E16);
+        //?} else {
+        super.renderBackground(context, mouseX, mouseY, delta);
+        //?}
+        //?}
+        //?}
+
         context.fill(0, 0, this.width, this.height, 0x80000000);
         int px = panelX();
         int py = panelY();
@@ -267,6 +304,19 @@ public class WaypointEditScreen extends Screen {
         super.render(context, mouseX, mouseY, delta);
     }
 
+    //? if >=1.20.2 {
+    //? if <1.21.5 {
+    /**
+     * Neutralized: the background is drawn manually at the top of {@link #render}
+     * so it stays beneath the overlay text. Drawing it again here (where the base
+     * {@code Screen.render} runs it) would repaint it on top of the text.
+     */
+    @Override
+    public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
+    }
+    //?}
+    //?}
+
     /** Vertical scrollbar for the command list, shown only when there are >3 commands. */
     private void drawCommandScrollbar(DrawContext context, int px, int py) {
         int total = commands.size();
@@ -283,6 +333,7 @@ public class WaypointEditScreen extends Screen {
         context.fill(trackX, thumbY, trackX + 2, thumbY + thumbH, 0x80FFFFFF);
     }
 
+    //? if >=1.21.11 {
     @Override
     public boolean mouseClicked(Click click, boolean bl) {
         if (click.button() == 0) {
@@ -294,13 +345,31 @@ public class WaypointEditScreen extends Screen {
         }
         return super.mouseClicked(click, bl);
     }
+    //?} else {
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button == 0) {
+            int idx = swatchAt(mouseX, mouseY);
+            if (idx >= 0) {
+                selectedColor = COLORS[idx];
+                return true;
+            }
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+    //?}
 
+    //? if >=1.20.2 {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         // Description box handles its own scrollbar; elsewhere the wheel scrolls
         // the command list (replaces the old ▲/▼ buttons).
         if (descriptionField.isMouseOver(mouseX, mouseY)) {
+            //? if >=1.21.5 {
             return descriptionField.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+            //?} else {
+            return true; // single-line description box swallows the scroll
+            //?}
         }
         int px = panelX();
         int py = panelY();
@@ -314,6 +383,27 @@ public class WaypointEditScreen extends Screen {
         }
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
+    //?} else {
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+        // 1.20.1 has no horizontal scroll amount and the description box is a
+        // single-line field, so it simply swallows the wheel.
+        if (descriptionField.isMouseOver(mouseX, mouseY)) {
+            return true;
+        }
+        int px = panelX();
+        int py = panelY();
+        int cmdTop = py + CMD_ROW0_Y;
+        int cmdBottom = py + CMD_ROW0_Y + (VISIBLE_COMMANDS - 1) * ROW_PITCH + FIELD_H;
+        if (mouseX >= px && mouseX < px + PANEL_W && mouseY >= cmdTop && mouseY < cmdBottom) {
+            commandScroll -= (int) amount;
+            clampScroll();
+            refreshCommandFields();
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, amount);
+    }
+    //?}
 
     @Override
     public boolean shouldPause() {

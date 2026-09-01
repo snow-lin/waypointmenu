@@ -1,0 +1,57 @@
+# Centralized version properties (see https://stonecutter.kikugie.dev/wiki/config/properties).
+mod.id = "waypointmenu"
+mod.name = "Waypoint Menu"
+mod.group = "com.waypointmenu"
+mod.version = "1.0.0"
+
+# Fabric Loader is version-agnostic across the target range; one version for all.
+deps.fabric_loader = "0.19.3"
+
+["1.20.1"]
+mod.mc_compat = ">=1.20 <1.20.2"
+mod.mc_range = "1.20-1.20.1"
+deps.yarn = "1.20.1+build.10"
+deps.fabric_api = "0.92.11+1.20.1"
+deps.modmenu = "7.2.2"
+
+["1.20.4"]
+mod.mc_compat = ">=1.20.2 <1.20.5"
+mod.mc_range = "1.20.2-1.20.4"
+deps.yarn = "1.20.4+build.3"
+deps.fabric_api = "0.97.2+1.20.4"
+deps.modmenu = "9.0.0"
+
+["1.20.6"]
+mod.mc_compat = ">=1.20.5 <1.21"
+mod.mc_range = "1.20.5-1.20.6"
+deps.yarn = "1.20.6+build.3"
+deps.fabric_api = "0.100.8+1.20.6"
+deps.modmenu = "10.0.0"
+
+["1.21.1"]
+mod.mc_compat = ">=1.21 <1.21.2"
+mod.mc_range = "1.21-1.21.1"
+deps.yarn = "1.21.1+build.3"
+deps.fabric_api = "0.116.15+1.21.1"
+deps.modmenu = "11.0.4"
+
+["1.21.4"]
+mod.mc_compat = ">=1.21.2 <1.21.5"
+mod.mc_range = "1.21.2-1.21.4"
+deps.yarn = "1.21.4+build.8"
+deps.fabric_api = "0.119.2+1.21.4"
+deps.modmenu = "13.0.4"
+
+["1.21.6"]
+mod.mc_compat = ">=1.21.6 <1.21.7"
+mod.mc_range = "1.21.6"
+deps.yarn = "1.21.6+build.1"
+deps.fabric_api = "0.128.2+1.21.6"
+deps.modmenu = "15.0.2"
+
+["1.21.11"]
+mod.mc_compat = ">=1.21.11 <1.22"
+mod.mc_range = "1.21.11"
+deps.yarn = "1.21.11+build.6"
+deps.fabric_api = "0.141.6+1.21.11"
+deps.modmenu = "17.0.0"

@@ -7,6 +7,7 @@ import com.waypointmenu.render.WaypointRenderer;
 import com.waypointmenu.screen.WaypointListScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.Window;
@@ -36,6 +37,10 @@ public class WaypointMenuClient implements ClientModInitializer {
         });
 
         WaypointRenderer.register();
+
+        // Draw far-away waypoint labels in screen space (their 3D geometry is
+        // clipped by the engine's far plane, so they fall back to the HUD pass).
+        HudRenderCallback.EVENT.register((context, tickCounter) -> WaypointRenderer.renderFarLabels(context));
     }
 
     /** Fires once when every key in the configured combination becomes held. */
@@ -53,7 +58,11 @@ public class WaypointMenuClient implements ClientModInitializer {
     private static boolean allKeysHeld(int[] keys) {
         Window window = MinecraftClient.getInstance().getWindow();
         for (int key : keys) {
+            //? if >=1.21.11 {
             if (key > 0 && !InputUtil.isKeyPressed(window, key)) {
+            //?} else {
+            if (key > 0 && !InputUtil.isKeyPressed(window.getHandle(), key)) {
+            //?}
                 return false;
             }
         }

@@ -15,3 +15,7 @@ Thumbs.db
 
 # Minecraft run directory
 run/
+
+# Stonecutter / build artifacts
+versions/
+output/
