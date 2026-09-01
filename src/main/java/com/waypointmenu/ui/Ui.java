@@ -1,6 +1,8 @@
 package com.waypointmenu.ui;
 
-import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.network.chat.Component;
 
 /**
  * Shared drawing helpers for the frosted-glass (毛玻璃) UI look.
@@ -18,22 +20,22 @@ public final class Ui {
     }
 
     /** Draws the frosted-glass panel: a single translucent rounded rectangle. */
-    public static void drawFrostedPanel(DrawContext ctx, int x, int y, int w, int h) {
+    public static void drawFrostedPanel(GuiGraphicsExtractor ctx, int x, int y, int w, int h) {
         drawRoundedRect(ctx, x, y, x + w, y + h, PANEL_RADIUS, 0xC8141820);
     }
 
     /** Draws a rounded list-row background. */
-    public static void drawRow(DrawContext ctx, int x, int y, int w, int h, boolean hovered) {
+    public static void drawRow(GuiGraphicsExtractor ctx, int x, int y, int w, int h, boolean hovered) {
         drawRoundedRect(ctx, x, y, x + w, y + h, ROW_RADIUS, hovered ? 0x28FFFFFF : 0x12FFFFFF);
     }
 
     /** Draws a rounded square action button. */
-    public static void drawButton(DrawContext ctx, int x, int y, int size, boolean hovered) {
+    public static void drawButton(GuiGraphicsExtractor ctx, int x, int y, int size, boolean hovered) {
         drawRoundedRect(ctx, x, y, x + size, y + size, ROW_RADIUS, hovered ? 0xFF34343E : 0xFF22222C);
     }
 
     /** Draws a 1px border around the given rectangle. */
-    public static void drawBorder(DrawContext ctx, int x, int y, int w, int h, int color) {
+    public static void drawBorder(GuiGraphicsExtractor ctx, int x, int y, int w, int h, int color) {
         ctx.fill(x, y, x + w, y + 1, color);
         ctx.fill(x, y + h - 1, x + w, y + h, color);
         ctx.fill(x, y + 1, x + 1, y + h - 1, color);
@@ -41,7 +43,7 @@ public final class Ui {
     }
 
     /** Fills a rounded rectangle with a single pass per pixel row. */
-    public static void drawRoundedRect(DrawContext ctx, int x, int y, int x1, int y1, int radius, int color) {
+    public static void drawRoundedRect(GuiGraphicsExtractor ctx, int x, int y, int x1, int y1, int radius, int color) {
         int w = x1 - x;
         int h = y1 - y;
         if (w <= 0 || h <= 0) {
@@ -61,5 +63,10 @@ public final class Ui {
             }
             ctx.fill(x + inset, y + row, x1 - inset, y + row + 1, color);
         }
+    }
+
+    /** Draws {@code text} centered on {@code centerX} with a drop shadow. */
+    public static void drawCenteredText(GuiGraphicsExtractor ctx, Font font, Component text, int centerX, int y, int color) {
+        ctx.text(font, text, centerX - font.width(text) / 2, y, color, true);
     }
 }

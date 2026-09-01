@@ -1,7 +1,7 @@
 package com.waypointmenu.command;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 
 import java.util.ArrayDeque;
 import java.util.List;
@@ -82,20 +82,20 @@ public class CommandSetExecutor {
     }
 
     private static void run(String command) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        ClientPlayNetworkHandler handler = client.getNetworkHandler();
+        Minecraft client = Minecraft.getInstance();
+        ClientPacketListener handler = client.getConnection();
         if (handler == null || client.player == null) {
             return;
         }
 
         String cmd = command.trim();
         if (cmd.startsWith("/")) {
-            handler.sendChatCommand(cmd.substring(1));
+            handler.sendCommand(cmd.substring(1));
         } else {
             if (cmd.length() > 256) {
                 cmd = cmd.substring(0, 256);
             }
-            handler.sendChatMessage(cmd);
+            handler.sendChat(cmd);
         }
     }
 }

@@ -3,9 +3,9 @@ package com.waypointmenu.data;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ServerInfo;
-import net.minecraft.server.MinecraftServer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.client.server.IntegratedServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,14 +69,14 @@ public class WaypointManager {
     }
 
     private static String currentWorldKey() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        MinecraftServer server = client.getServer();
+        Minecraft client = Minecraft.getInstance();
+        IntegratedServer server = client.getSingleplayerServer();
         if (server != null) {
-            return "sp_" + sanitize(server.getSaveProperties().getLevelName());
+            return "sp_" + sanitize(server.getWorldData().getLevelName());
         }
-        ServerInfo info = client.getCurrentServerEntry();
-        if (info != null && info.address != null && !info.address.isEmpty()) {
-            return "mp_" + sanitize(info.address);
+        ServerData info = client.getCurrentServer();
+        if (info != null && info.ip != null && !info.ip.isEmpty()) {
+            return "mp_" + sanitize(info.ip);
         }
         return "world";
     }

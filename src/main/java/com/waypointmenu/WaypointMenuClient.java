@@ -1,5 +1,7 @@
 package com.waypointmenu;
 
+import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.platform.Window;
 import com.waypointmenu.command.CommandSetExecutor;
 import com.waypointmenu.config.WaypointConfig;
 import com.waypointmenu.data.WaypointManager;
@@ -7,10 +9,7 @@ import com.waypointmenu.render.WaypointRenderer;
 import com.waypointmenu.screen.WaypointListScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.client.util.Window;
+import net.minecraft.client.Minecraft;
 
 /**
  * Client entrypoint: drives the command-set queue and wires up world rendering.
@@ -26,21 +25,18 @@ public class WaypointMenuClient implements ClientModInitializer {
 
             // Open/close the list when the configured key combination is pressed.
             if (client.player != null && comboPressed()) {
-                if (client.currentScreen instanceof WaypointListScreen) {
-                    client.setScreen(null);
+                if (ClientCompat.currentScreen(client) instanceof WaypointListScreen) {
+                    ClientCompat.setScreen(client, null);
                 } else {
-                    client.setScreen(new WaypointListScreen());
+                    ClientCompat.setScreen(client, new WaypointListScreen());
                 }
             }
             // Advance the command-set queue (handles #sleep delays between commands).
             CommandSetExecutor.tick();
         });
 
+        // In-world markers plus the HUD pass for far-away labels.
         WaypointRenderer.register();
-
-        // Draw far-away waypoint labels in screen space (their 3D geometry is
-        // clipped by the engine's far plane, so they fall back to the HUD pass).
-        HudRenderCallback.EVENT.register((context, tickCounter) -> WaypointRenderer.renderFarLabels(context));
     }
 
     /** Fires once when every key in the configured combination becomes held. */
@@ -56,13 +52,9 @@ public class WaypointMenuClient implements ClientModInitializer {
     }
 
     private static boolean allKeysHeld(int[] keys) {
-        Window window = MinecraftClient.getInstance().getWindow();
+        Window window = Minecraft.getInstance().getWindow();
         for (int key : keys) {
-            //? if >=1.21.9 {
-            if (key > 0 && !InputUtil.isKeyPressed(window, key)) {
-            //?} else {
-            if (key > 0 && !InputUtil.isKeyPressed(window.getHandle(), key)) {
-            //?}
+            if (key > 0 && !InputConstants.isKeyDown(window, key)) {
                 return false;
             }
         }

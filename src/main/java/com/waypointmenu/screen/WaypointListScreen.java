@@ -1,26 +1,21 @@
 package com.waypointmenu.screen;
 
+import com.waypointmenu.ClientCompat;
 import com.waypointmenu.command.CommandSetExecutor;
 import com.waypointmenu.config.WaypointConfig;
 import com.waypointmenu.data.Waypoint;
 import com.waypointmenu.data.WaypointManager;
 import com.waypointmenu.ui.Ui;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
-//? if >=1.21.9 {
-import net.minecraft.client.gui.Click;
-//?}
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-//? if >=1.21.6 {
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import org.joml.Matrix3x2fStack;
-//?} else {
-import net.minecraft.client.util.math.MatrixStack;
-//?}
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,7 +76,7 @@ public class WaypointListScreen extends Screen {
     private final List<Row> rows = new ArrayList<>();
 
     public WaypointListScreen() {
-        super(Text.translatable("screen.waypointmenu.list.title"));
+        super(Component.translatable("screen.waypointmenu.list.title"));
     }
 
     @Override
@@ -96,15 +91,15 @@ public class WaypointListScreen extends Screen {
 
         // Bottom bar spans the list area (right of the sidebar), not the full panel.
         int btnW = 132;
-        addDrawableChild(ButtonWidget.builder(
-                        Text.translatable("waypointmenu.button.add"),
+        addRenderableWidget(Button.builder(
+                        Component.translatable("waypointmenu.button.add"),
                         b -> addCurrentPosition())
-                .dimensions(listLeft() + 8, panelY + PANEL_H - 22, btnW, 20)
+                .bounds(listLeft() + 8, panelY + PANEL_H - 22, btnW, 20)
                 .build());
-        addDrawableChild(ButtonWidget.builder(
-                        Text.translatable("waypointmenu.button.close"),
-                        b -> this.close())
-                .dimensions(listLeft() + 8 + btnW + 16, panelY + PANEL_H - 22, btnW, 20)
+        addRenderableWidget(Button.builder(
+                        Component.translatable("waypointmenu.button.close"),
+                        b -> this.onClose())
+                .bounds(listLeft() + 8 + btnW + 16, panelY + PANEL_H - 22, btnW, 20)
                 .build());
     }
 
@@ -121,30 +116,12 @@ public class WaypointListScreen extends Screen {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // Draw the background first so it stays beneath the overlay text:
-        // through 1.21.5 the base Screen.render() runs renderBackground() at its
-        // start, and this method calls super.render() at the end, so the
-        // background would otherwise be painted on top of the text. From 1.21.6
-        // the background is drawn outside render(), so no manual draw is needed.
-        //? if >=1.20.2 {
-        //? if <1.21.6 {
-        //? if <1.20.6 {
-        // 1.20.4 iterates its GUI layers in HashMap order, so even drawn first
-        // the vanilla background texture can land on top; draw a fill-layer
-        // gradient instead.
-        context.fillGradient(0, 0, this.width, this.height, 0xFF1E1E2A, 0xFF0E0E16);
-        //?} else {
-        super.renderBackground(context, mouseX, mouseY, delta);
-        //?}
-        //?}
-        //?}
-
+    public void extractRenderState(GuiGraphicsExtractor gui, int mouseX, int mouseY, float partialTick) {
         // Dim the world behind the overlay.
-        context.fill(0, 0, this.width, this.height, 0x80000000);
+        gui.fill(0, 0, this.width, this.height, 0x80000000);
 
         // Frosted-glass panel background.
-        Ui.drawFrostedPanel(context, panelX, panelY, PANEL_W, PANEL_H);
+        Ui.drawFrostedPanel(gui, panelX, panelY, PANEL_W, PANEL_H);
 
         // Heading centered above the panel (sidebar + list area).
         float titleScale = 1.5f;
@@ -152,32 +129,23 @@ public class WaypointListScreen extends Screen {
         // Place it a quarter of the way from that top anchor down to the panel.
         double titleTop = 5.0 * titleScale;
         int titleY = (int) Math.round((titleTop + (panelY - titleTop) / 4.0) / titleScale);
-        //? if >=1.21.6 {
-        Matrix3x2fStack matrices = context.getMatrices();
+        Matrix3x2fStack matrices = gui.pose();
         matrices.pushMatrix();
         matrices.scale(titleScale, titleScale);
         int titleCenterX = (int) (this.width / (2 * titleScale));
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, titleCenterX, titleY, 0xFFFFFFFF);
+        Ui.drawCenteredText(gui, this.font, this.title, titleCenterX, titleY, 0xFFFFFFFF);
         matrices.popMatrix();
-        //?} else {
-        MatrixStack matrices = context.getMatrices();
-        matrices.push();
-        matrices.scale(titleScale, titleScale, 1.0f);
-        int titleCenterX = (int) (this.width / (2 * titleScale));
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, titleCenterX, titleY, 0xFFFFFFFF);
-        matrices.pop();
-        //?}
 
         // Sidebar: dimension filter with a divider separating it from the list.
-        context.fill(listLeft(), listTop, listLeft() + 1, listBottom, 0x1EFFFFFF);
+        gui.fill(listLeft(), listTop, listLeft() + 1, listBottom, 0x1EFFFFFF);
         for (int i = 0; i < FILTER_KEYS.length; i++) {
             int bx = sidebarBtnX();
             int by = sidebarBtnY(i);
             boolean active = i == filterIndex;
             boolean hovered = mouseX >= bx && mouseX < bx + SB_BTN_W && mouseY >= by && mouseY < by + SB_BTN_H;
             int bg = active ? 0xFF2E3A48 : (hovered ? 0x28FFFFFF : 0x12FFFFFF);
-            Ui.drawRoundedRect(context, bx, by, bx + SB_BTN_W, by + SB_BTN_H, 4, bg);
-            context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable(FILTER_KEYS[i]),
+            Ui.drawRoundedRect(gui, bx, by, bx + SB_BTN_W, by + SB_BTN_H, 4, bg);
+            Ui.drawCenteredText(gui, this.font, Component.translatable(FILTER_KEYS[i]),
                     bx + SB_BTN_W / 2, by + 5, active ? 0xFFFFFFFF : 0xFFAAAAAA);
         }
 
@@ -191,31 +159,30 @@ public class WaypointListScreen extends Screen {
 
         if (waypoints.isEmpty()) {
             int listCenterX = listLeft() + (PANEL_W - SIDEBAR_W) / 2;
-            context.drawCenteredTextWithShadow(
-                    this.textRenderer,
-                    Text.translatable("waypointmenu.message.empty"),
+            Ui.drawCenteredText(gui, this.font,
+                    Component.translatable("waypointmenu.message.empty"),
                     listCenterX,
                     listTop + (viewport / 2) - 5,
                     0xFF808080);
         } else {
-            context.enableScissor(listLeft(), listTop, panelX + PANEL_W, listBottom);
+            gui.enableScissor(listLeft(), listTop, panelX + PANEL_W, listBottom);
             for (int i = 0; i < waypoints.size(); i++) {
                 int y = listTop + i * ROW_HEIGHT - scrollOffset;
                 if (y + ROW_HEIGHT <= listTop || y >= listBottom) {
                     continue;
                 }
-                renderRow(context, mouseX, mouseY, waypoints.get(i), y);
+                renderRow(gui, mouseX, mouseY, waypoints.get(i), y);
             }
-            context.disableScissor();
+            gui.disableScissor();
         }
 
         // Drop-position indicator while dragging.
         if (dragActive && dragWp != null) {
             int indicatorY = listTop + dragTargetSlot * ROW_HEIGHT - scrollOffset;
-            context.fill(listLeft() + 4, indicatorY - 1, panelX + PANEL_W - 4, indicatorY + 1, 0xFFFFFFFF);
+            gui.fill(listLeft() + 4, indicatorY - 1, panelX + PANEL_W - 4, indicatorY + 1, 0xFFFFFFFF);
 
             // Translucent copy of the dragged row that follows the mouse.
-            drawFloatingRow(context, dragWp, (int) dragMouseY - ROW_HEIGHT / 2);
+            drawFloatingRow(gui, dragWp, (int) dragMouseY - ROW_HEIGHT / 2);
         }
 
         // Scrollbar.
@@ -223,48 +190,35 @@ public class WaypointListScreen extends Screen {
             int trackH = viewport;
             int thumbH = Math.max(24, trackH * viewport / contentHeight);
             int thumbY = listTop + (int) ((long) (trackH - thumbH) * scrollOffset / maxScroll);
-            context.fill(panelX + PANEL_W - 4, listTop, panelX + PANEL_W - 2, listBottom, 0x33FFFFFF);
-            context.fill(panelX + PANEL_W - 4, thumbY, panelX + PANEL_W - 2, thumbY + thumbH, 0xFF808080);
+            gui.fill(panelX + PANEL_W - 4, listTop, panelX + PANEL_W - 2, listBottom, 0x33FFFFFF);
+            gui.fill(panelX + PANEL_W - 4, thumbY, panelX + PANEL_W - 2, thumbY + thumbH, 0xFF808080);
         }
 
-        super.render(context, mouseX, mouseY, delta);
+        super.extractRenderState(gui, mouseX, mouseY, partialTick);
     }
 
-    //? if >=1.20.2 {
-    //? if <1.21.6 {
-    /**
-     * Neutralized: the background is drawn manually at the top of {@link #render}
-     * so it stays beneath the overlay text. Drawing it again here (where the base
-     * {@code Screen.render} runs it) would repaint it on top of the text.
-     */
-    @Override
-    public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
-    }
-    //?}
-    //?}
-
-    private void renderRow(DrawContext context, int mouseX, int mouseY, Waypoint wp, int y) {
+    private void renderRow(GuiGraphicsExtractor gui, int mouseX, int mouseY, Waypoint wp, int y) {
         boolean highlighted = manager.isHighlighted(wp);
         int left = listLeft();
         boolean hovered = mouseX >= left && mouseX < panelX + PANEL_W && mouseY >= y && mouseY < y + ROW_HEIGHT;
 
         // The dragged row renders as a translucent copy at the mouse (see
-        // render()); leave a faint placeholder in its original slot.
+        // extractRenderState); leave a faint placeholder in its original slot.
         if (dragActive && dragWp == wp) {
-            Ui.drawRow(context, left + 4, y, PANEL_W - SIDEBAR_W - 8, ROW_HEIGHT - 2, false);
-            context.fill(left + 4, y, left + 4 + PANEL_W - SIDEBAR_W - 8, y + ROW_HEIGHT - 2, 0x14000000);
+            Ui.drawRow(gui, left + 4, y, PANEL_W - SIDEBAR_W - 8, ROW_HEIGHT - 2, false);
+            gui.fill(left + 4, y, left + 4 + PANEL_W - SIDEBAR_W - 8, y + ROW_HEIGHT - 2, 0x14000000);
             return;
         }
 
-        Ui.drawRow(context, left + 4, y, PANEL_W - SIDEBAR_W - 8, ROW_HEIGHT - 2, hovered);
+        Ui.drawRow(gui, left + 4, y, PANEL_W - SIDEBAR_W - 8, ROW_HEIGHT - 2, hovered);
 
         // Color indicator dot: bright when highlighted, dimmed otherwise.
         int dotColor = highlighted ? wp.color : ((wp.color & 0x00FFFFFF) | 0x66000000);
-        Ui.drawRoundedRect(context, left + 10, y + 10, left + 18, y + 18, 3, dotColor);
+        Ui.drawRoundedRect(gui, left + 10, y + 10, left + 18, y + 18, 3, dotColor);
 
         // Name (line 1).
         int nameColor = highlighted ? wp.color : 0xFFFFFFFF;
-        context.drawText(this.textRenderer, Text.literal(wp.name), left + 24, y + 3, nameColor, true);
+        gui.text(this.font, Component.literal(wp.name), left + 24, y + 3, nameColor, true);
 
         // Action buttons on the right: highlight / run / edit / delete.
         int btnY = y + (ROW_HEIGHT - BTN) / 2;
@@ -274,92 +228,79 @@ public class WaypointListScreen extends Screen {
         int hlX = runX - BTN - BTN_GAP;
 
         // Line 2: coordinates + dimension, followed by a dimmed description snippet.
-        MutableText coordsText = Text.literal(String.format("%d, %d, %d  ", wp.x, wp.y, wp.z)).append(dimensionName(wp.dimension));
+        MutableComponent coordsText = Component.literal(String.format("%d, %d, %d  ", wp.x, wp.y, wp.z)).append(dimensionName(wp.dimension));
         int coordsColor = highlighted ? wp.color : 0xFFAAAAAA;
-        context.drawText(this.textRenderer, coordsText, left + 24, y + 15, coordsColor, true);
+        gui.text(this.font, coordsText, left + 24, y + 15, coordsColor, true);
 
         String desc = wp.description == null ? "" : wp.description.trim().replace('\n', ' ');
         if (!desc.isEmpty()) {
-            int coordsW = this.textRenderer.getWidth(coordsText);
+            int coordsW = this.font.width(coordsText);
             int avail = hlX - (left + 24) - 4;
             String sep = "  ·  ";
-            int snippetMax = avail - coordsW - this.textRenderer.getWidth(sep);
+            int snippetMax = avail - coordsW - this.font.width(sep);
             if (snippetMax > 20) {
-                context.drawText(this.textRenderer, Text.literal(sep + truncateToWidth(desc, snippetMax)),
+                gui.text(this.font, Component.literal(sep + truncateToWidth(desc, snippetMax)),
                         left + 24 + coordsW, y + 15, 0xFF888888, true);
             }
         }
 
-        drawActionButton(context, hlX, btnY, "◆", mouseX, mouseY, highlighted ? wp.color : 0xFF808080);
-        drawActionButton(context, runX, btnY, "▶", mouseX, mouseY, 0xFF40C040);
-        drawActionButton(context, editX, btnY, "✎", mouseX, mouseY, 0xFF4080E0);
-        drawActionButton(context, delX, btnY, "✕", mouseX, mouseY, 0xFFE04040);
+        drawActionButton(gui, hlX, btnY, "◆", mouseX, mouseY, highlighted ? wp.color : 0xFF808080);
+        drawActionButton(gui, runX, btnY, "▶", mouseX, mouseY, 0xFF40C040);
+        drawActionButton(gui, editX, btnY, "✎", mouseX, mouseY, 0xFF4080E0);
+        drawActionButton(gui, delX, btnY, "✕", mouseX, mouseY, 0xFFE04040);
 
         rows.add(new Row(wp, y, hlX, runX, editX, delX, btnY));
 
         // Tooltips for the action buttons.
         if (mouseX >= hlX && mouseX < hlX + BTN && mouseY >= btnY && mouseY < btnY + BTN) {
-            context.drawTooltip(this.textRenderer, Text.translatable("waypointmenu.tooltip.highlight"), mouseX, mouseY);
+            gui.setTooltipForNextFrame(Component.translatable("waypointmenu.tooltip.highlight"), mouseX, mouseY);
         } else if (mouseX >= runX && mouseX < runX + BTN && mouseY >= btnY && mouseY < btnY + BTN) {
-            context.drawTooltip(this.textRenderer, Text.translatable("waypointmenu.tooltip.run"), mouseX, mouseY);
+            gui.setTooltipForNextFrame(Component.translatable("waypointmenu.tooltip.run"), mouseX, mouseY);
         } else if (mouseX >= editX && mouseX < editX + BTN && mouseY >= btnY && mouseY < btnY + BTN) {
-            context.drawTooltip(this.textRenderer, Text.translatable("waypointmenu.tooltip.edit"), mouseX, mouseY);
+            gui.setTooltipForNextFrame(Component.translatable("waypointmenu.tooltip.edit"), mouseX, mouseY);
         } else if (mouseX >= delX && mouseX < delX + BTN && mouseY >= btnY && mouseY < btnY + BTN) {
-            context.drawTooltip(this.textRenderer, Text.translatable("waypointmenu.tooltip.delete"), mouseX, mouseY);
+            gui.setTooltipForNextFrame(Component.translatable("waypointmenu.tooltip.delete"), mouseX, mouseY);
         } else if (mouseX >= left && mouseX < panelX + PANEL_W && mouseY >= y && mouseY < y + ROW_HEIGHT) {
             // With right-click teleport disabled, the row only toggles highlight;
             // otherwise it advertises both the left-click toggle and right-click teleport.
-            Text rowTooltip = Text.translatable(WaypointConfig.get().rightClickTeleport
+            Component rowTooltip = Component.translatable(WaypointConfig.get().rightClickTeleport
                     ? "waypointmenu.tooltip.row"
                     : "waypointmenu.tooltip.highlight");
-            context.drawTooltip(this.textRenderer, rowTooltip, mouseX, mouseY);
+            gui.setTooltipForNextFrame(rowTooltip, mouseX, mouseY);
         }
     }
 
     /** Draws the dragged row as a translucent copy that follows the mouse. */
-    private void drawFloatingRow(DrawContext context, Waypoint wp, int y) {
+    private void drawFloatingRow(GuiGraphicsExtractor gui, Waypoint wp, int y) {
         int x = listLeft() + 4;
         int w = PANEL_W - SIDEBAR_W - 8;
 
-        Ui.drawRoundedRect(context, x, y, x + w, y + ROW_HEIGHT - 2, 6, 0x662E3A48);
-        Ui.drawRoundedRect(context, x + 6, y + 10, x + 14, y + 18, 3, wp.color);
+        Ui.drawRoundedRect(gui, x, y, x + w, y + ROW_HEIGHT - 2, 6, 0x662E3A48);
+        Ui.drawRoundedRect(gui, x + 6, y + 10, x + 14, y + 18, 3, wp.color);
 
-        context.drawText(this.textRenderer, Text.literal(wp.name), x + 20, y + 3, 0xB0FFFFFF, true);
-        MutableText coordsText = Text.literal(String.format("%d, %d, %d  ", wp.x, wp.y, wp.z)).append(dimensionName(wp.dimension));
-        context.drawText(this.textRenderer, coordsText, x + 20, y + 15, 0xB0AAAAAA, true);
+        gui.text(this.font, Component.literal(wp.name), x + 20, y + 3, 0xB0FFFFFF, true);
+        MutableComponent coordsText = Component.literal(String.format("%d, %d, %d  ", wp.x, wp.y, wp.z)).append(dimensionName(wp.dimension));
+        gui.text(this.font, coordsText, x + 20, y + 15, 0xB0AAAAAA, true);
     }
 
-    private void drawActionButton(DrawContext context, int x, int y, String glyph, int mouseX, int mouseY, int color) {
+    private void drawActionButton(GuiGraphicsExtractor gui, int x, int y, String glyph, int mouseX, int mouseY, int color) {
         boolean hovered = mouseX >= x && mouseX < x + BTN && mouseY >= y && mouseY < y + BTN;
-        Ui.drawButton(context, x, y, BTN, hovered);
-        context.drawCenteredTextWithShadow(this.textRenderer, Text.literal(glyph), x + BTN / 2, y + 3, color);
+        Ui.drawButton(gui, x, y, BTN, hovered);
+        Ui.drawCenteredText(gui, this.font, Component.literal(glyph), x + BTN / 2, y + 3, color);
     }
 
-    //? if >=1.21.9 {
     @Override
-    public boolean mouseClicked(Click click, boolean bl) {
-        if (click.button() == 0 && handleClick(click.x(), click.y())) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean bl) {
+        if (event.button() == 0 && handleClick(event.x(), event.y())) {
             return true;
         }
-        if (click.button() == 1 && handleRightClick(click.x(), click.y())) {
+        if (event.button() == 1 && handleRightClick(event.x(), event.y())) {
             return true;
         }
-        return super.mouseClicked(click, bl);
+        return super.mouseClicked(event, bl);
     }
-    //?} else {
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0 && handleClick(mouseX, mouseY)) {
-            return true;
-        }
-        if (button == 1 && handleRightClick(mouseX, mouseY)) {
-            return true;
-        }
-        return super.mouseClicked(mouseX, mouseY, button);
-    }
-    //?}
 
-    /** Shared click handling for the era-specific mouseClicked signatures. */
+    /** Shared click handling for the mouse-click signature. */
     private boolean handleClick(double mouseX, double mouseY) {
         // Sidebar filter buttons.
         for (int i = 0; i < FILTER_KEYS.length; i++) {
@@ -420,48 +361,38 @@ public class WaypointListScreen extends Screen {
         if (!WaypointConfig.get().rightClickTeleport) {
             return;
         }
-        MinecraftClient client = this.client;
-        if (client == null || client.player == null || client.world == null) {
+        Minecraft client = this.minecraft;
+        if (client == null || client.player == null || client.level == null) {
             return;
         }
-        ClientPlayNetworkHandler handler = client.getNetworkHandler();
+        ClientPacketListener handler = client.getConnection();
         if (handler == null) {
             return;
         }
-        String currentDim = client.world.getRegistryKey().getValue().toString();
+        String currentDim = client.level.dimension().identifier().toString();
         String coords = String.format("%.1f %d %.1f", wp.x + 0.5, wp.y, wp.z + 0.5);
         // Same-dimension teleport uses a plain /tp; cross-dimension wraps it in
         // /execute in <dimension> so the destination resolves in that world.
         if (currentDim.equals(wp.dimension)) {
-            handler.sendChatCommand("tp " + coords);
+            handler.sendCommand("tp " + coords);
         } else if (WaypointConfig.get().crossDimensionTeleport) {
-            handler.sendChatCommand("execute in " + wp.dimension + " run tp @s " + coords);
+            handler.sendCommand("execute in " + wp.dimension + " run tp @s " + coords);
         } else {
-            client.player.sendMessage(Text.translatable("waypointmenu.message.cross_dimension_off"), true);
+            client.player.sendOverlayMessage(Component.translatable("waypointmenu.message.cross_dimension_off"));
             return;
         }
-        client.player.sendMessage(Text.translatable("waypointmenu.message.teleported", wp.name), true);
+        client.player.sendOverlayMessage(Component.translatable("waypointmenu.message.teleported", wp.name));
     }
 
-    //? if >=1.21.9 {
     @Override
-    public boolean mouseDragged(Click click, double deltaX, double deltaY) {
-        if (handleDrag(click.x(), click.y())) {
+    public boolean mouseDragged(MouseButtonEvent event, double deltaX, double deltaY) {
+        if (handleDrag(event.x(), event.y())) {
             return true;
         }
-        return super.mouseDragged(click, deltaX, deltaY);
+        return super.mouseDragged(event, deltaX, deltaY);
     }
-    //?} else {
-    @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        if (handleDrag(mouseX, mouseY)) {
-            return true;
-        }
-        return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
-    }
-    //?}
 
-    /** Shared drag handling for the era-specific mouseDragged signatures. */
+    /** Shared drag handling for the mouse-dragged signature. */
     private boolean handleDrag(double mouseX, double mouseY) {
         if (dragWp != null) {
             dragMouseY = mouseY;
@@ -478,25 +409,15 @@ public class WaypointListScreen extends Screen {
         return false;
     }
 
-    //? if >=1.21.9 {
     @Override
-    public boolean mouseReleased(Click click) {
+    public boolean mouseReleased(MouseButtonEvent event) {
         if (handleRelease()) {
             return true;
         }
-        return super.mouseReleased(click);
+        return super.mouseReleased(event);
     }
-    //?} else {
-    @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (handleRelease()) {
-            return true;
-        }
-        return super.mouseReleased(mouseX, mouseY, button);
-    }
-    //?}
 
-    /** Shared release handling for the era-specific mouseReleased signatures. */
+    /** Shared release handling for the mouse-released signature. */
     private boolean handleRelease() {
         if (dragWp != null) {
             Waypoint wp = dragWp;
@@ -520,71 +441,57 @@ public class WaypointListScreen extends Screen {
         return false;
     }
 
-    //? if >=1.20.2 {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         scrollOffset = Math.max(0, Math.min(scrollOffset - (int) (verticalAmount * ROW_HEIGHT), maxScroll));
         return true;
     }
-    //?} else {
-    @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
-        scrollOffset = Math.max(0, Math.min(scrollOffset - (int) (amount * ROW_HEIGHT), maxScroll));
-        return true;
-    }
-    //?}
-
-    @Override
-    public boolean shouldPause() {
-        return false;
-    }
 
     private void addCurrentPosition() {
-        MinecraftClient client = this.client;
-        if (client == null || client.player == null || client.world == null) {
+        Minecraft client = this.minecraft;
+        if (client == null || client.player == null || client.level == null) {
             return;
         }
-        String dimension = client.world.getRegistryKey().getValue().toString();
-        BlockPos pos = client.player.getBlockPos();
+        String dimension = client.level.dimension().identifier().toString();
+        BlockPos pos = client.player.blockPosition();
         String name = "Waypoint " + (manager.getWaypoints().size() + 1);
         Waypoint wp = manager.addWaypoint(name, dimension, pos.getX(), pos.getY(), pos.getZ(), new ArrayList<>());
         wp.color = RANDOM_COLORS[RANDOM.nextInt(RANDOM_COLORS.length)];
-        client.player.sendMessage(Text.translatable("waypointmenu.message.recorded", name), false);
+        client.player.sendSystemMessage(Component.translatable("waypointmenu.message.recorded", name));
         openEditor(wp);
     }
 
     private void openEditor(Waypoint wp) {
-        if (this.client != null) {
-            this.client.setScreen(new WaypointEditScreen(wp, this));
+        if (this.minecraft != null) {
+            ClientCompat.setScreen(this.minecraft, new WaypointEditScreen(wp, this));
         }
     }
 
     private void toggleHighlight(Waypoint wp) {
         boolean on = manager.toggleHighlight(wp);
-        if (this.client != null && this.client.player != null) {
-            this.client.player.sendMessage(
-                    Text.translatable(on ? "waypointmenu.message.highlight_on" : "waypointmenu.message.highlight_off", wp.name),
-                    true);
+        if (this.minecraft != null && this.minecraft.player != null) {
+            this.minecraft.player.sendOverlayMessage(
+                    Component.translatable(on ? "waypointmenu.message.highlight_on" : "waypointmenu.message.highlight_off", wp.name));
         }
     }
 
     private void runCommands(Waypoint wp) {
         if (wp.commands == null || wp.commands.isEmpty()) {
-            if (this.client != null && this.client.player != null) {
-                this.client.player.sendMessage(Text.translatable("waypointmenu.message.no_commands"), false);
+            if (this.minecraft != null && this.minecraft.player != null) {
+                this.minecraft.player.sendSystemMessage(Component.translatable("waypointmenu.message.no_commands"));
             }
             return;
         }
         CommandSetExecutor.execute(wp.commands);
-        if (this.client != null && this.client.player != null) {
-            this.client.player.sendMessage(Text.translatable("waypointmenu.message.commands_run", wp.commands.size()), true);
+        if (this.minecraft != null && this.minecraft.player != null) {
+            this.minecraft.player.sendOverlayMessage(Component.translatable("waypointmenu.message.commands_run", wp.commands.size()));
         }
     }
 
     private void delete(Waypoint wp) {
         manager.removeWaypoint(wp);
-        if (this.client != null && this.client.player != null) {
-            this.client.player.sendMessage(Text.translatable("waypointmenu.message.deleted"), false);
+        if (this.minecraft != null && this.minecraft.player != null) {
+            this.minecraft.player.sendSystemMessage(Component.translatable("waypointmenu.message.deleted"));
         }
     }
 
@@ -604,14 +511,14 @@ public class WaypointListScreen extends Screen {
 
     /** Truncates a string to fit {@code maxWidth} pixels, appending "…" when cut. */
     private String truncateToWidth(String s, int maxWidth) {
-        if (this.textRenderer.getWidth(s) <= maxWidth) {
+        if (this.font.width(s) <= maxWidth) {
             return s;
         }
-        int ellipsisW = this.textRenderer.getWidth("…");
+        int ellipsisW = this.font.width("…");
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
-            if (this.textRenderer.getWidth(sb.toString() + c) + ellipsisW > maxWidth) {
+            if (this.font.width(sb.toString() + c) + ellipsisW > maxWidth) {
                 break;
             }
             sb.append(c);
@@ -620,7 +527,7 @@ public class WaypointListScreen extends Screen {
     }
 
     /** Localizes a raw dimension id to its display name (主世界 / 下界 / 末地). */
-    private static Text dimensionName(String dimension) {
+    private static Component dimensionName(String dimension) {
         String key;
         if ("minecraft:the_nether".equals(dimension)) {
             key = "waypointmenu.dimension.nether";
@@ -629,7 +536,7 @@ public class WaypointListScreen extends Screen {
         } else {
             key = "waypointmenu.dimension.overworld";
         }
-        return Text.translatable(key);
+        return Component.translatable(key);
     }
 
     private static class Row {

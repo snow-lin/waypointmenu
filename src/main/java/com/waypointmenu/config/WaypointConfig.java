@@ -3,7 +3,7 @@ package com.waypointmenu.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,9 +94,9 @@ public class WaypointConfig {
         // (view distance × 16 blocks) so it can never exceed how far the world
         // actually renders.
         double max = 1024.0;
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         if (client != null && client.options != null) {
-            max = client.options.getViewDistance().getValue() * 16.0;
+            max = client.options.renderDistance().get() * 16.0;
         }
         return Math.max(16.0, Math.min(max, v));
     }
