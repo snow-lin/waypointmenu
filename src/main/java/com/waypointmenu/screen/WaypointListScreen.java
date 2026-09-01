@@ -7,7 +7,7 @@ import com.waypointmenu.data.WaypointManager;
 import com.waypointmenu.ui.Ui;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
-//? if >=1.21.11 {
+//? if >=1.21.9 {
 import net.minecraft.client.gui.Click;
 //?}
 import net.minecraft.client.gui.DrawContext;
@@ -122,12 +122,13 @@ public class WaypointListScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // Draw the background first so it stays beneath the overlay text: on
-        // 1.20.4/1.21.1/1.21.4 the GUI vertex provider flushes its layers in an
-        // order that would otherwise paint the background on top of the text,
-        // veiling (in-world) or hiding (at the menu) it.
+        // Draw the background first so it stays beneath the overlay text:
+        // through 1.21.5 the base Screen.render() runs renderBackground() at its
+        // start, and this method calls super.render() at the end, so the
+        // background would otherwise be painted on top of the text. From 1.21.6
+        // the background is drawn outside render(), so no manual draw is needed.
         //? if >=1.20.2 {
-        //? if <1.21.5 {
+        //? if <1.21.6 {
         //? if <1.20.6 {
         // 1.20.4 iterates its GUI layers in HashMap order, so even drawn first
         // the vanilla background texture can land on top; draw a fill-layer
@@ -147,19 +148,23 @@ public class WaypointListScreen extends Screen {
 
         // Heading centered above the panel (sidebar + list area).
         float titleScale = 1.5f;
+        // The heading's draw anchor (y=5) renders at 5*titleScale px from the top.
+        // Place it a quarter of the way from that top anchor down to the panel.
+        double titleTop = 5.0 * titleScale;
+        int titleY = (int) Math.round((titleTop + (panelY - titleTop) / 4.0) / titleScale);
         //? if >=1.21.6 {
         Matrix3x2fStack matrices = context.getMatrices();
         matrices.pushMatrix();
         matrices.scale(titleScale, titleScale);
         int titleCenterX = (int) (this.width / (2 * titleScale));
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, titleCenterX, 5, 0xFFFFFFFF);
+        context.drawCenteredTextWithShadow(this.textRenderer, this.title, titleCenterX, titleY, 0xFFFFFFFF);
         matrices.popMatrix();
         //?} else {
         MatrixStack matrices = context.getMatrices();
         matrices.push();
         matrices.scale(titleScale, titleScale, 1.0f);
         int titleCenterX = (int) (this.width / (2 * titleScale));
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, titleCenterX, 5, 0xFFFFFFFF);
+        context.drawCenteredTextWithShadow(this.textRenderer, this.title, titleCenterX, titleY, 0xFFFFFFFF);
         matrices.pop();
         //?}
 
@@ -226,7 +231,7 @@ public class WaypointListScreen extends Screen {
     }
 
     //? if >=1.20.2 {
-    //? if <1.21.5 {
+    //? if <1.21.6 {
     /**
      * Neutralized: the background is drawn manually at the top of {@link #render}
      * so it stays beneath the overlay text. Drawing it again here (where the base
@@ -330,7 +335,7 @@ public class WaypointListScreen extends Screen {
         context.drawCenteredTextWithShadow(this.textRenderer, Text.literal(glyph), x + BTN / 2, y + 3, color);
     }
 
-    //? if >=1.21.11 {
+    //? if >=1.21.9 {
     @Override
     public boolean mouseClicked(Click click, boolean bl) {
         if (click.button() == 0 && handleClick(click.x(), click.y())) {
@@ -438,7 +443,7 @@ public class WaypointListScreen extends Screen {
         client.player.sendMessage(Text.translatable("waypointmenu.message.teleported", wp.name), true);
     }
 
-    //? if >=1.21.11 {
+    //? if >=1.21.9 {
     @Override
     public boolean mouseDragged(Click click, double deltaX, double deltaY) {
         if (handleDrag(click.x(), click.y())) {
@@ -473,7 +478,7 @@ public class WaypointListScreen extends Screen {
         return false;
     }
 
-    //? if >=1.21.11 {
+    //? if >=1.21.9 {
     @Override
     public boolean mouseReleased(Click click) {
         if (handleRelease()) {

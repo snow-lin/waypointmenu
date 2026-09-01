@@ -25,7 +25,7 @@ public final class WaypointMenuHighlightLayer {
     //? if <1.21.5 {
     public static RenderLayer create() {
         RenderLayer.MultiPhaseParameters params = RenderLayer.MultiPhaseParameters.builder()
-                //? if >=1.21.4 {
+                //? if >=1.21.2 {
                 .program(RenderPhase.POSITION_COLOR_PROGRAM)
                 //?} else {
                 .program(RenderPhase.COLOR_PROGRAM)

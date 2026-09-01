@@ -58,7 +58,7 @@ public class WaypointMenuClient implements ClientModInitializer {
     private static boolean allKeysHeld(int[] keys) {
         Window window = MinecraftClient.getInstance().getWindow();
         for (int key : keys) {
-            //? if >=1.21.11 {
+            //? if >=1.21.9 {
             if (key > 0 && !InputUtil.isKeyPressed(window, key)) {
             //?} else {
             if (key > 0 && !InputUtil.isKeyPressed(window.getHandle(), key)) {

@@ -3,7 +3,7 @@ package com.waypointmenu.screen;
 import com.waypointmenu.data.Waypoint;
 import com.waypointmenu.data.WaypointManager;
 import com.waypointmenu.ui.Ui;
-//? if >=1.21.11 {
+//? if >=1.21.9 {
 import net.minecraft.client.gui.Click;
 //?}
 //? if >=1.21.5 {
@@ -170,10 +170,11 @@ public class WaypointEditScreen extends Screen {
             addDrawableChild(insert);
         }
 
-        //? if >=1.21.5 {
-        // Multi-line description box: auto-wraps and scrolls past its visible lines.
-        // Note: build()'s last argument is the narration message, not the text —
-        // the initial text must be set explicitly via setText().
+        //? if >=1.21.6 {
+        // Multi-line description box (1.21.6+): auto-wraps and scrolls past its
+        // visible lines, styled via the fluent builder. Note: build()'s last
+        // argument is the narration message, not the text — the initial text must
+        // be set explicitly via setText().
         descriptionField = EditBoxWidget.builder()
                 .x(px + PAD)
                 .y(py + DESC_BOX_Y)
@@ -184,8 +185,15 @@ public class WaypointEditScreen extends Screen {
                 .hasBackground(true)
                 .hasOverlay(true)
                 .build(this.textRenderer, PANEL_W - 2 * PAD, descH, Text.translatable("waypointmenu.field.description"));
+        //?} elif >=1.21.5 {
+        // 1.21.5 has the multi-line EditBoxWidget but not yet its fluent builder,
+        // so build it from the plain constructor (placeholder, narration message).
+        descriptionField = new EditBoxWidget(this.textRenderer, px + PAD, py + DESC_BOX_Y,
+                PANEL_W - 2 * PAD, descH,
+                Text.translatable("waypointmenu.placeholder.description"),
+                Text.translatable("waypointmenu.field.description"));
         //?} else {
-        // Pre-1.21.3: single-line description field (multi-line box is unavailable).
+        // Pre-1.21.5: single-line description field (multi-line box is unavailable).
         descriptionField = new TextFieldWidget(this.textRenderer, px + PAD, py + DESC_BOX_Y, PANEL_W - 2 * PAD, FIELD_H, Text.empty());
         descriptionField.setMaxLength(256);
         descriptionField.setPlaceholder(Text.translatable("waypointmenu.placeholder.description"));
@@ -254,12 +262,13 @@ public class WaypointEditScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // Draw the background first so it stays beneath the overlay text: on
-        // 1.20.4/1.21.1/1.21.4 the GUI vertex provider flushes its layers in an
-        // order that would otherwise paint the background on top of the text,
-        // veiling (in-world) or hiding (at the menu) it.
+        // Draw the background first so it stays beneath the overlay text:
+        // through 1.21.5 the base Screen.render() runs renderBackground() at its
+        // start, and this method calls super.render() at the end, so the
+        // background would otherwise be painted on top of the text. From 1.21.6
+        // the background is drawn outside render(), so no manual draw is needed.
         //? if >=1.20.2 {
-        //? if <1.21.5 {
+        //? if <1.21.6 {
         //? if <1.20.6 {
         // 1.20.4 iterates its GUI layers in HashMap order, so even drawn first
         // the vanilla background texture can land on top; draw a fill-layer
@@ -305,7 +314,7 @@ public class WaypointEditScreen extends Screen {
     }
 
     //? if >=1.20.2 {
-    //? if <1.21.5 {
+    //? if <1.21.6 {
     /**
      * Neutralized: the background is drawn manually at the top of {@link #render}
      * so it stays beneath the overlay text. Drawing it again here (where the base
@@ -333,7 +342,7 @@ public class WaypointEditScreen extends Screen {
         context.fill(trackX, thumbY, trackX + 2, thumbY + thumbH, 0x80FFFFFF);
     }
 
-    //? if >=1.21.11 {
+    //? if >=1.21.9 {
     @Override
     public boolean mouseClicked(Click click, boolean bl) {
         if (click.button() == 0) {

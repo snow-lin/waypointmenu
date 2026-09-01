@@ -1,15 +1,18 @@
 package com.waypointmenu.render;
 
-//? if >=1.21.11 {
+//? if >=1.21.10 {
 import com.mojang.blaze3d.platform.DepthTestFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.waypointmenu.mixin.RenderLayerInvoker;
 import com.waypointmenu.mixin.RenderPipelinesAccessor;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
-import net.minecraft.client.render.RenderSetup;
+import net.minecraft.client.render.WaypointMenuHighlightLayer;
 import net.minecraft.util.Identifier;
-//?} elif >=1.21.5 {
+//? if >=1.21.11 {
+import com.waypointmenu.mixin.RenderLayerInvoker;
+import net.minecraft.client.render.RenderSetup;
+//?}
+//?} elif >=1.21.5 <1.21.9 {
 import com.mojang.blaze3d.platform.DepthTestFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.waypointmenu.mixin.RenderPipelinesAccessor;
@@ -17,7 +20,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.render.WaypointMenuHighlightLayer;
 import net.minecraft.util.Identifier;
-//?} else {
+//?} elif <1.21.5 {
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -52,26 +55,37 @@ import org.slf4j.LoggerFactory;
  * above the waypoint, rendered without depth testing so it is visible through
  * terrain. The name/coordinate label is likewise see-through.</p>
  *
- * <p>On 1.21.11+ this hooks Fabric's {@code WorldRenderEvents#BEFORE_TRANSLUCENT}
- * and submits geometry/text through the world renderer's command queue; on
- * 1.21.6 and earlier it hooks {@code WorldRenderEvents#AFTER_ENTITIES} and writes
- * through the classic {@code VertexConsumerProvider} instead; vanilla flushes the
- * shared immediate itself after the entities pass.</p>
+ * <p>Three rendering eras across the supported versions:</p>
+ * <ul>
+ *   <li>{@code >=1.21.10} hooks Fabric's {@code WorldRenderEvents#END_MAIN}
+ *       (package {@code ...rendering.v1.world}) and submits geometry/text through
+ *       the world renderer's command queue.</li>
+ *   <li>{@code <1.21.9} hooks {@code WorldRenderEvents#AFTER_TRANSLUCENT} (package
+ *       {@code ...rendering.v1}) and writes through the classic
+ *       {@code VertexConsumerProvider}.</li>
+ *   <li>{@code 1.21.9} ships rendering-v1 16.0.1, which removed the world render
+ *       events entirely before they returned (under {@code ...rendering.v1.world})
+ *       in 16.2.0 for 1.21.10. With no world-space hook there, in-world markers
+ *       are unavailable and every waypoint degrades to the HUD label pass.</li>
+ * </ul>
  */
 public class WaypointRenderer {
 
+    //? if !=1.21.9 {
     /**
      * A translucent POSITION_COLOR layer with depth testing disabled, built once.
      * New-era builds it from vanilla's own POSITION_COLOR snippet; old-era uses
      * a hand-rolled {@link RenderLayer.MultiPhase} layer.
      */
     private static final RenderLayer HIGHLIGHT_LAYER = createHighlightLayer();
+    //?}
 
     private static final Logger LOGGER = LoggerFactory.getLogger("waypointmenu");
     private static int frameCounter = 0;
     private static int diagFrame = 0;
     private static int hudDiagCounter = 0;
 
+    //? if !=1.21.9 {
     private static RenderLayer createHighlightLayer() {
         //? if >=1.21.11 {
         RenderPipeline pipeline = RenderPipeline.builder(RenderPipelinesAccessor.getPositionColorSnippet())
@@ -81,9 +95,9 @@ public class WaypointRenderer {
                 .build();
         return RenderLayerInvoker.invoke("waypointmenu_highlight_beam", RenderSetup.builder(pipeline).translucent().build());
         //?} elif >=1.21.5 {
-        // 1.21.5/1.21.6 still use RenderLayer.MultiPhase (RenderSetup does not
-        // exist yet); the pipeline carries the shader/blend/depth state, and the
-        // same-package helper wraps it in a translucent MultiPhase layer.
+        // 1.21.5..1.21.10 still use RenderLayer.MultiPhase (RenderSetup does not
+        // exist until 1.21.11); the pipeline carries the shader/blend/depth state,
+        // and the same-package helper wraps it in a translucent MultiPhase layer.
         RenderPipeline pipeline = RenderPipeline.builder(RenderPipelinesAccessor.getPositionColorSnippet())
                 .withLocation(Identifier.of("waypointmenu", "highlight_beam"))
                 .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
@@ -94,12 +108,22 @@ public class WaypointRenderer {
         return WaypointMenuHighlightLayer.create();
         //?}
     }
+    //?}
 
+    /**
+     * Registers the in-world marker hook after the translucent pass (water, ice)
+     * so the see-through marker composites on top of water instead of being tinted
+     * or hidden by it. 1.21.9 is the one gap: its Fabric API (rendering-v1 16.0.1)
+     * dropped the world render events entirely before they returned under
+     * {@code ...rendering.v1.world} in 16.2.0 (1.21.10), so on that version this
+     * is a no-op and every highlighted waypoint is drawn by the HUD label pass.
+     */
     public static void register() {
-        //? if >=1.21.11 {
-        WorldRenderEvents.BEFORE_TRANSLUCENT.register(WaypointRenderer::render);
+        //? if >=1.21.10 {
+        WorldRenderEvents.END_MAIN.register(WaypointRenderer::render);
+        //?} elif <1.21.9 {
+        WorldRenderEvents.AFTER_TRANSLUCENT.register(WaypointRenderer::render);
         //?} else {
-        WorldRenderEvents.AFTER_ENTITIES.register(WaypointRenderer::render);
         //?}
     }
 
@@ -113,6 +137,7 @@ public class WaypointRenderer {
         return (float) Math.max(1.0, distance / WaypointConfig.get().textFixedSizeDistance);
     }
 
+    //? if !=1.21.9 {
     private static void render(WorldRenderContext context) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player == null || client.world == null) {
@@ -196,7 +221,7 @@ public class WaypointRenderer {
     }
 
     private static void renderWaypoint(WorldRenderContext context, MinecraftClient client, Waypoint wp) {
-        //? if >=1.21.11 {
+        //? if >=1.21.10 {
         MatrixStack matrices = context.matrices();
         //?} else {
         MatrixStack matrices = context.matrixStack();
@@ -242,7 +267,7 @@ public class WaypointRenderer {
             matrices.translate(cx - cam.x, markerY - cam.y, cz - cam.z);
             matrices.multiply(client.gameRenderer.getCamera().getRotation());
 
-            //? if >=1.21.11 {
+            //? if >=1.21.10 {
             context.commandQueue().submitCustom(matrices, HIGHLIGHT_LAYER, (entry, vc) ->
                     drawFlatDiamond(entry, vc, markerW, markerH, r, g, b, a));
             //?} else {
@@ -272,7 +297,7 @@ public class WaypointRenderer {
         TextRenderer textRenderer = client.textRenderer;
         String label = String.format("%s  %.0fm", wp.name, distance);
 
-        //? if >=1.21.11 {
+        //? if >=1.21.10 {
         MatrixStack matrices = context.matrices();
         //?} else {
         MatrixStack matrices = context.matrixStack();
@@ -304,7 +329,7 @@ public class WaypointRenderer {
 
         float x = -textRenderer.getWidth(label) / 2.0f;
 
-        //? if >=1.21.11 {
+        //? if >=1.21.10 {
         // outlineColor must be 0: any non-zero value routes through drawWithOutline,
         // which forces TextLayerType.NORMAL (depth-tested) and hides the label behind
         // walls. 0 keeps us on the draw() path so the SEE_THROUGH layer applies.
@@ -341,12 +366,15 @@ public class WaypointRenderer {
 
         matrices.pop();
     }
+    //?}
 
     /**
      * Screen-space fallback for waypoints beyond the engine's far clipping plane.
      * Registered on the HUD pass: projects each far waypoint's label anchor to
      * pixel coordinates and draws only the name/distance text (no diamond), so
      * labels stay visible at any range instead of vanishing at the far plane.
+     * On 1.21.9 (no world render events) this also draws every near waypoint,
+     * since there is no in-world marker to render them.
      */
     public static void renderFarLabels(DrawContext context) {
         MinecraftClient client = MinecraftClient.getInstance();
@@ -410,9 +438,11 @@ public class WaypointRenderer {
             double dy = markerY - camPos.y;
             double dz = cz - camPos.z;
             double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            //? if !=1.21.9 {
             if (distance <= threshold) {
                 continue; // rendered in world space
             }
+            //?}
 
             // Replicate the 3D label's floating anchor so the handoff is seamless.
             double labelY = markerY + 2.0 * distanceScale(distance);
@@ -544,7 +574,8 @@ public class WaypointRenderer {
      * A flat, camera-facing diamond (rhombus): a single quad billboarded so it
      * appears the same from every viewing angle.
      */
-    //? if >=1.21.11 {
+    //? if !=1.21.9 {
+    //? if >=1.21.10 {
     private static void drawFlatDiamond(MatrixStack.Entry m, VertexConsumer vc,
                                         float w, float h, float r, float g, float b, float a) {
         vc.vertex(m, 0, h, 0).color(r, g, b, a);   // top
@@ -572,12 +603,13 @@ public class WaypointRenderer {
         //?}
     }
     //?}
+    //?}
 
     /**
-     * Version-agnostic camera position: the zero-arg position getter was renamed
-     * from {@code getPos()} to {@code getCameraPos()} in the 1.21.5+ era.
+     * Version-agnostic camera position: {@code getPos()} is renamed to
+     * {@code getCameraPos()} at 1.21.6, and the old getter is dropped at 1.21.11.
      */
-    //? if >=1.21.5 {
+    //? if >=1.21.6 {
     private static Vec3d cameraPos(Camera camera) {
         return camera.getCameraPos();
     }

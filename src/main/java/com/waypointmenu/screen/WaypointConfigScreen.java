@@ -2,7 +2,7 @@ package com.waypointmenu.screen;
 
 import com.waypointmenu.config.WaypointConfig;
 import com.waypointmenu.ui.Ui;
-//? if >=1.21.11 {
+//? if >=1.21.9 {
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.input.KeyInput;
 //?}
@@ -186,7 +186,7 @@ public class WaypointConfigScreen extends Screen {
         return Text.translatable("waypointmenu.config.keybind_awaiting");
     }
 
-    //? if >=1.21.11 {
+    //? if >=1.21.9 {
     @Override
     public boolean keyPressed(KeyInput input) {
         if (this.awaitingBind) {
@@ -240,7 +240,7 @@ public class WaypointConfigScreen extends Screen {
                 && y >= keybindButton.getY() && y < keybindButton.getY() + keybindButton.getHeight();
     }
 
-    //? if >=1.21.11 {
+    //? if >=1.21.9 {
     @Override
     public boolean mouseClicked(Click click, boolean bl) {
         if (this.awaitingBind && click.button() == 0) {
@@ -311,12 +311,13 @@ public class WaypointConfigScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // Draw the background first so it stays beneath the overlay text: on
-        // 1.20.4/1.21.1/1.21.4 the GUI vertex provider flushes its layers in an
-        // order that would otherwise paint the background on top of the text,
-        // veiling (in-world) or hiding (at the menu) it.
+        // Draw the background first so it stays beneath the overlay text:
+        // through 1.21.5 the base Screen.render() runs renderBackground() at its
+        // start, and this method calls super.render() at the end, so the
+        // background would otherwise be painted on top of the text. From 1.21.6
+        // the background is drawn outside render(), so no manual draw is needed.
         //? if >=1.20.2 {
-        //? if <1.21.5 {
+        //? if <1.21.6 {
         //? if <1.20.6 {
         // 1.20.4 iterates its GUI layers in HashMap order, so even drawn first
         // the vanilla background texture can land on top; draw a fill-layer
@@ -332,7 +333,9 @@ public class WaypointConfigScreen extends Screen {
         int px = panelX();
         int py = panelY();
         Ui.drawFrostedPanel(context, px, py, PANEL_W, PANEL_H);
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, py - 8, 0xFFFFFFFF);
+        // Title sits 8px above the panel; nudge it up a further 12px total
+        // gap so it reads as a distinct header rather than hugging the panel.
+        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, py - 20, 0xFFFFFFFF);
 
         context.drawText(this.textRenderer, Text.translatable("waypointmenu.config.text_size_distance"), px + 12, py + 12, 0xFFAAAAAA, false);
         context.drawText(this.textRenderer, Text.translatable("waypointmenu.config.opacity"), px + 12, py + 32, 0xFFAAAAAA, false);
@@ -354,7 +357,7 @@ public class WaypointConfigScreen extends Screen {
     }
 
     //? if >=1.20.2 {
-    //? if <1.21.5 {
+    //? if <1.21.6 {
     /**
      * Neutralized: the background is drawn manually at the top of {@link #render}
      * so it stays beneath the overlay text. Drawing it again here (where the base
