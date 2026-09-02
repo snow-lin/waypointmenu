@@ -25,6 +25,9 @@ import com.waypointmenu.mixin.RenderPipelinesAccessor;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
+//? if >=26.2 {
+import net.fabricmc.fabric.api.client.rendering.v1.SubmitRenderPhases;
+//?}
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -32,6 +35,8 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 //? if >=26.2 {
 import net.minecraft.client.renderer.BindGroupLayouts;
+import net.minecraft.client.renderer.feature.CustomFeatureRenderer;
+import net.minecraft.client.renderer.feature.TextFeatureRenderer;
 //?}
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -90,6 +95,7 @@ public class WaypointRenderer {
                 .withPrimitiveTopology(PrimitiveTopology.QUADS)
                 .withDepthStencilState(new DepthStencilState(CompareOp.ALWAYS_PASS, false))
                 .withCull(false)
+                .withLocation(Identifier.fromNamespaceAndPath("waypointmenu", "highlight"))
                 .build();
         //?} else {
         // 26.1 has no BindGroupLayouts / withVertexBinding / withPrimitiveTopology:
@@ -105,6 +111,7 @@ public class WaypointRenderer {
                 .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
                 .withDepthStencilState(new DepthStencilState(CompareOp.ALWAYS_PASS, false))
                 .withCull(false)
+                .withLocation(Identifier.fromNamespaceAndPath("waypointmenu", "highlight"))
                 .build();
         //?}
     }
@@ -120,7 +127,21 @@ public class WaypointRenderer {
      * plus the HUD pass that draws far-away waypoint labels in screen space.
      */
     public static void register() {
+        //? if >=26.2 {
+        // 26.2 can submit to SubmitRenderPhases.ALWAYS_ON_TOP, which is rendered in its
+        // own pass after the water-mask, so END_MAIN is fine (the node is not drawn by
+        // the main pass).
         LevelRenderEvents.END_MAIN.register(WaypointRenderer::render);
+        //?} else {
+        // 26.1 has no submit phases: submitText/submitCustomGeometry always write into
+        // the main pass's submit collection, which is rendered during the
+        // translucent-features pass — BEFORE the translucent-terrain (water) pass that
+        // tints and hides the see-through marker. To draw on top of water we render
+        // immediately (not deferred) at AFTER_TRANSLUCENT_TERRAIN, which fires after
+        // water but before the buffer source is flushed, so the marker composites over
+        // water in the same frame with the correct camera.
+        LevelRenderEvents.AFTER_TRANSLUCENT_TERRAIN.register(WaypointRenderer::render);
+        //?}
         HudElementRegistry.addLast(
                 Identifier.fromNamespaceAndPath("waypointmenu", "far_labels"),
                 WaypointRenderer::renderFarLabels
@@ -220,8 +241,22 @@ public class WaypointRenderer {
             matrices.pushPose();
             matrices.translate(cx - cam.x, markerY - cam.y, cz - cam.z);
             matrices.mulPose(camera.orientation);
-            context.submitNodeCollector().submitCustomGeometry(matrices, HIGHLIGHT_TYPE, (pose, vc) ->
-                    drawFlatDiamond(pose, vc, markerW, markerH, r, g, b, a));
+            //? if >=26.2 {
+            // ALWAYS_ON_TOP runs after the water-mask pass, so the see-through marker
+            // is not tinted or hidden by water. 26.1 has no phase system and keeps
+            // the plain submitCustomGeometry call in the else branch below.
+            context.submitNodeCollector().submitCustom(
+                    SubmitRenderPhases.ALWAYS_ON_TOP,
+                    new CustomFeatureRenderer.Submit(matrices.last().copy(), HIGHLIGHT_TYPE, (pose, vc) ->
+                            drawFlatDiamond(pose, vc, markerW, markerH, r, g, b, a)));
+            //?} else {
+            // 26.1 has no submit phases: draw straight into the frame's buffer source
+            // so it is flushed after the translucent-terrain (water) pass (see
+            // register()). This is exactly what the deferred submitCustomGeometry path
+            // does internally, just issued at a later render stage.
+            VertexConsumer vc = context.bufferSource().getBuffer(HIGHLIGHT_TYPE);
+            drawFlatDiamond(matrices.last(), vc, markerW, markerH, r, g, b, a);
+            //?}
             matrices.popPose();
         }
 
@@ -262,17 +297,40 @@ public class WaypointRenderer {
         // outlineColor must be 0: any non-zero value routes through the outlined
         // text path, which forces the NORMAL (depth-tested) display mode and hides
         // the label behind walls. 0 keeps us on the SEE_THROUGH path.
-        context.submitNodeCollector().submitText(
-                matrices,
-                x, 0.0f,
+        //? if >=26.2 {
+        // SEE_THROUGH keeps the text depth-test-free; ALWAYS_ON_TOP places it after
+        // the water-mask pass so the label is not tinted by water. 26.1 keeps the
+        // plain submitText call (no phase system) in the else branch.
+        context.submitNodeCollector().submitCustom(
+                SubmitRenderPhases.ALWAYS_ON_TOP,
+                new TextFeatureRenderer.Submit(
+                        new Matrix4f(matrices.last().pose()),
+                        x, 0.0f,
+                        Component.literal(label).getVisualOrderText(),
+                        false,
+                        Font.DisplayMode.SEE_THROUGH,
+                        0xF000F0, // fullbright packed light (block 15, sky 15)
+                        wp.color,
+                        0,
+                        0
+                ));
+        //?} else {
+        // 26.1 has no submit phases: draw the text immediately into the frame's buffer
+        // source (flushed after the translucent-terrain/water pass) so the see-through
+        // label is not tinted or hidden by water. This is the same Font.drawInBatch call
+        // the deferred submitText path makes internally, issued at a later render stage.
+        font.drawInBatch(
                 Component.literal(label).getVisualOrderText(),
-                false,
-                Font.DisplayMode.SEE_THROUGH,
-                0xF000F0, // fullbright packed light (block 15, sky 15)
+                x, 0.0f,
                 wp.color,
-                0,
-                0
+                false,
+                matrices.last().pose(),
+                context.bufferSource(),
+                Font.DisplayMode.SEE_THROUGH,
+                0,        // backgroundColor
+                0xF000F0  // fullbright packed light (block 15, sky 15)
         );
+        //?}
 
         matrices.popPose();
     }
