@@ -35,10 +35,10 @@
 
 本 Mod 为 **26.1 与 26.2** 分别构建一个 Jar（共 2 个），每个 Jar 的 `mc_compat` 精确锁定单一版本，且均已实机验证：
 
-| Minecraft | 对应 Jar | 状态 |
-|-----------|----------|------|
-| 26.1 | `waypointmenu-1.0.0+26.1.jar` | ✅ 已验证 |
-| 26.2 | `waypointmenu-1.0.0+26.2.jar` | ✅ 已验证 |
+| Minecraft | Fabric Loader | Fabric API | 状态 |
+|-----------|---------------|------------|------|
+| 26.1 | 0.19.3 | 0.145.1+26.1 | ✅ 已验证 |
+| 26.2 | 0.19.3 | 0.159.0+26.2 | ✅ 已验证 |
 
 > - 26.x 基于 Mojang 官方映射（Mojmap）构建，未混淆（unobfuscated），无需 remapJar。
 > - ✅ 所有版本均已实机验证。
@@ -180,8 +180,8 @@
    ./gradlew 26.1:build 26.2:build   # 批量构建 26.1 与 26.2
    ```
 3. 产物位于：
-   - `versions/26.1/build/libs/waypointmenu-1.0.0+26.1.jar`
-   - `versions/26.2/build/libs/waypointmenu-1.0.0+26.2.jar`
+   - `versions/26.1/build/libs/waypointmenu-1.1.0+26.1.jar`
+   - `versions/26.2/build/libs/waypointmenu-1.1.0+26.2.jar`
 
 > 首次构建会下载 Minecraft 与 Fabric API，耗时较长属正常现象。
 > 26.x 需要 **Java 25** 工具链。
@@ -244,10 +244,10 @@ A **Fabric client** mod that records locations, attaches a set of commands to ea
 
 This mod builds one Jar for **26.1 and 26.2** (2 in total); each Jar's `mc_compat` locks to exactly one version, and both have been verified on real machines:
 
-| Minecraft | Jar | Status |
-|-----------|-----|--------|
-| 26.1 | `waypointmenu-1.0.0+26.1.jar` | ✅ Verified |
-| 26.2 | `waypointmenu-1.0.0+26.2.jar` | ✅ Verified |
+| Minecraft | Fabric Loader | Fabric API | Status |
+|-----------|---------------|------------|--------|
+| 26.1 | 0.19.3 | 0.145.1+26.1 | ✅ Verified |
+| 26.2 | 0.19.3 | 0.159.0+26.2 | ✅ Verified |
 
 > - 26.x is built with Mojang's official mappings (Mojmap), unobfuscated, with no remapJar.
 > - ✅ All versions have been verified on real machines.
@@ -389,8 +389,8 @@ Built with [Stonecutter](https://stonecutter.kikugie.dev/) multi-version builds:
    ./gradlew 26.1:build 26.2:build   # build 26.1 and 26.2
    ```
 3. Outputs:
-   - `versions/26.1/build/libs/waypointmenu-1.0.0+26.1.jar`
-   - `versions/26.2/build/libs/waypointmenu-1.0.0+26.2.jar`
+   - `versions/26.1/build/libs/waypointmenu-1.1.0+26.1.jar`
+   - `versions/26.2/build/libs/waypointmenu-1.1.0+26.2.jar`
 
 > The first build downloads Minecraft and Fabric API, which takes a while — that's normal.
 > 26.x requires a **Java 25** toolchain.
