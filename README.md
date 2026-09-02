@@ -35,27 +35,27 @@
 
 本 Mod 为 **1.20 ~ 1.21.11 的每个小版本**单独构建一个 Jar（共 19 个），每个 Jar 的 `mc_compat` 精确锁定单一版本，且均已实机验证：
 
-| Minecraft | 对应 Jar | 状态 |
-|-----------|----------|------|
-| 1.20 | `waypointmenu-1.0.0+1.20.jar` | ✅ 已验证 |
-| 1.20.1 | `waypointmenu-1.0.0+1.20.1.jar` | ✅ 已验证 |
-| 1.20.2 | `waypointmenu-1.0.0+1.20.2.jar` | ✅ 已验证 |
-| 1.20.3 | `waypointmenu-1.0.0+1.20.3.jar` | ✅ 已验证 |
-| 1.20.4 | `waypointmenu-1.0.0+1.20.4.jar` | ✅ 已验证 |
-| 1.20.5 | `waypointmenu-1.0.0+1.20.5.jar` | ✅ 已验证 |
-| 1.20.6 | `waypointmenu-1.0.0+1.20.6.jar` | ✅ 已验证 |
-| 1.21 | `waypointmenu-1.0.0+1.21.jar` | ✅ 已验证 |
-| 1.21.1 | `waypointmenu-1.0.0+1.21.1.jar` | ✅ 已验证 |
-| 1.21.2 | `waypointmenu-1.0.0+1.21.2.jar` | ✅ 已验证 |
-| 1.21.3 | `waypointmenu-1.0.0+1.21.3.jar` | ✅ 已验证 |
-| 1.21.4 | `waypointmenu-1.0.0+1.21.4.jar` | ✅ 已验证 |
-| 1.21.5 | `waypointmenu-1.0.0+1.21.5.jar` | ✅ 已验证 |
-| 1.21.6 | `waypointmenu-1.0.0+1.21.6.jar` | ✅ 已验证 |
-| 1.21.7 | `waypointmenu-1.0.0+1.21.7.jar` | ✅ 已验证 |
-| 1.21.8 | `waypointmenu-1.0.0+1.21.8.jar` | ✅ 已验证 |
-| 1.21.9 | `waypointmenu-1.0.0+1.21.9.jar` | ✅ 已验证 |
-| 1.21.10 | `waypointmenu-1.0.0+1.21.10.jar` | ✅ 已验证 |
-| 1.21.11 | `waypointmenu-1.0.0+1.21.11.jar` | ✅ 已验证 |
+| Minecraft | Fabric Loader | Fabric API | 状态 |
+|-----------|---------------|------------|------|
+| 1.20 | 0.19.3 | 0.83.0+1.20 | ✅ 已验证 |
+| 1.20.1 | 0.19.3 | 0.92.11+1.20.1 | ✅ 已验证 |
+| 1.20.2 | 0.19.3 | 0.91.6+1.20.2 | ✅ 已验证 |
+| 1.20.3 | 0.19.3 | 0.91.1+1.20.3 | ✅ 已验证 |
+| 1.20.4 | 0.19.3 | 0.97.3+1.20.4 | ✅ 已验证 |
+| 1.20.5 | 0.19.3 | 0.97.8+1.20.5 | ✅ 已验证 |
+| 1.20.6 | 0.19.3 | 0.100.8+1.20.6 | ✅ 已验证 |
+| 1.21 | 0.19.3 | 0.102.0+1.21 | ✅ 已验证 |
+| 1.21.1 | 0.19.3 | 0.116.15+1.21.1 | ✅ 已验证 |
+| 1.21.2 | 0.19.3 | 0.106.1+1.21.2 | ✅ 已验证 |
+| 1.21.3 | 0.19.3 | 0.114.1+1.21.3 | ✅ 已验证 |
+| 1.21.4 | 0.19.3 | 0.119.4+1.21.4 | ✅ 已验证 |
+| 1.21.5 | 0.19.3 | 0.128.2+1.21.5 | ✅ 已验证 |
+| 1.21.6 | 0.19.3 | 0.128.2+1.21.6 | ✅ 已验证 |
+| 1.21.7 | 0.19.3 | 0.129.0+1.21.7 | ✅ 已验证 |
+| 1.21.8 | 0.19.3 | 0.136.1+1.21.8 | ✅ 已验证 |
+| 1.21.9 | 0.19.3 | 0.134.1+1.21.9 | ✅ 已验证 |
+| 1.21.10 | 0.19.3 | 0.138.4+1.21.10 | ✅ 已验证 |
+| 1.21.11 | 0.19.3 | 0.141.4+1.21.11 | ✅ 已验证 |
 
 > 说明：
 > - **1.21.9**：Fabric API 的 `rendering-v1 16.0.1` 移除了世界渲染事件（`WorldRenderEvents`），该版本**无世界内 3D 菱形标记**，高亮地点全部退化为「超视距 HUD 标签」方式显示（其余功能正常）。
@@ -262,27 +262,27 @@ A **Fabric client** mod that records locations, attaches a set of commands to ea
 
 This mod builds one Jar for **every 1.20–1.21.11 minor version** (19 in total); each Jar's `mc_compat` locks to exactly one version, and all of them have been verified on real machines:
 
-| Minecraft | Jar | Status |
-|-----------|-----|--------|
-| 1.20 | `waypointmenu-1.0.0+1.20.jar` | ✅ Verified |
-| 1.20.1 | `waypointmenu-1.0.0+1.20.1.jar` | ✅ Verified |
-| 1.20.2 | `waypointmenu-1.0.0+1.20.2.jar` | ✅ Verified |
-| 1.20.3 | `waypointmenu-1.0.0+1.20.3.jar` | ✅ Verified |
-| 1.20.4 | `waypointmenu-1.0.0+1.20.4.jar` | ✅ Verified |
-| 1.20.5 | `waypointmenu-1.0.0+1.20.5.jar` | ✅ Verified |
-| 1.20.6 | `waypointmenu-1.0.0+1.20.6.jar` | ✅ Verified |
-| 1.21 | `waypointmenu-1.0.0+1.21.jar` | ✅ Verified |
-| 1.21.1 | `waypointmenu-1.0.0+1.21.1.jar` | ✅ Verified |
-| 1.21.2 | `waypointmenu-1.0.0+1.21.2.jar` | ✅ Verified |
-| 1.21.3 | `waypointmenu-1.0.0+1.21.3.jar` | ✅ Verified |
-| 1.21.4 | `waypointmenu-1.0.0+1.21.4.jar` | ✅ Verified |
-| 1.21.5 | `waypointmenu-1.0.0+1.21.5.jar` | ✅ Verified |
-| 1.21.6 | `waypointmenu-1.0.0+1.21.6.jar` | ✅ Verified |
-| 1.21.7 | `waypointmenu-1.0.0+1.21.7.jar` | ✅ Verified |
-| 1.21.8 | `waypointmenu-1.0.0+1.21.8.jar` | ✅ Verified |
-| 1.21.9 | `waypointmenu-1.0.0+1.21.9.jar` | ✅ Verified |
-| 1.21.10 | `waypointmenu-1.0.0+1.21.10.jar` | ✅ Verified |
-| 1.21.11 | `waypointmenu-1.0.0+1.21.11.jar` | ✅ Verified |
+| Minecraft | Fabric Loader | Fabric API | Status |
+|-----------|---------------|------------|--------|
+| 1.20 | 0.19.3 | 0.83.0+1.20 | ✅ Verified |
+| 1.20.1 | 0.19.3 | 0.92.11+1.20.1 | ✅ Verified |
+| 1.20.2 | 0.19.3 | 0.91.6+1.20.2 | ✅ Verified |
+| 1.20.3 | 0.19.3 | 0.91.1+1.20.3 | ✅ Verified |
+| 1.20.4 | 0.19.3 | 0.97.3+1.20.4 | ✅ Verified |
+| 1.20.5 | 0.19.3 | 0.97.8+1.20.5 | ✅ Verified |
+| 1.20.6 | 0.19.3 | 0.100.8+1.20.6 | ✅ Verified |
+| 1.21 | 0.19.3 | 0.102.0+1.21 | ✅ Verified |
+| 1.21.1 | 0.19.3 | 0.116.15+1.21.1 | ✅ Verified |
+| 1.21.2 | 0.19.3 | 0.106.1+1.21.2 | ✅ Verified |
+| 1.21.3 | 0.19.3 | 0.114.1+1.21.3 | ✅ Verified |
+| 1.21.4 | 0.19.3 | 0.119.4+1.21.4 | ✅ Verified |
+| 1.21.5 | 0.19.3 | 0.128.2+1.21.5 | ✅ Verified |
+| 1.21.6 | 0.19.3 | 0.128.2+1.21.6 | ✅ Verified |
+| 1.21.7 | 0.19.3 | 0.129.0+1.21.7 | ✅ Verified |
+| 1.21.8 | 0.19.3 | 0.136.1+1.21.8 | ✅ Verified |
+| 1.21.9 | 0.19.3 | 0.134.1+1.21.9 | ✅ Verified |
+| 1.21.10 | 0.19.3 | 0.138.4+1.21.10 | ✅ Verified |
+| 1.21.11 | 0.19.3 | 0.141.4+1.21.11 | ✅ Verified |
 
 > Notes:
 > - **1.21.9**: Fabric API's `rendering-v1 16.0.1` removed the world render events (`WorldRenderEvents`), so that version has **no in-world 3D diamond marker**; highlighted waypoints all fall back to the "far-label HUD" display (other features work normally).
