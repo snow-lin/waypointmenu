@@ -99,7 +99,7 @@ This mod builds one Jar for **26.1 and 26.2** (2 in total); each Jar's `mc_compa
 - **Color**: 8 preset swatches; click one to pick the highlight color.
 - **Coordinates**: three integer inputs for X / Y / Z.
 - **Command set**: shows up to 3 lines at once, scrollable; `✕` deletes a line, `＋` inserts a line below.
-- **Description**: multi-line (1.21.5+ supports word wrap and scrolling; older versions are single-line).
+- **Description**: multi-line (supports word wrap and scrolling).
 
 ### Command Set Syntax
 
