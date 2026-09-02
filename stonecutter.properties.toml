@@ -2,7 +2,7 @@
 mod.id = "waypointmenu"
 mod.name = "Waypoint Menu"
 mod.group = "com.waypointmenu"
-mod.version = "1.0.0"
+mod.version = "1.1.0"
 
 # Fabric Loader is version-agnostic across the target range; one version for all.
 deps.fabric_loader = "0.19.3"
