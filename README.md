@@ -1,5 +1,7 @@
 # Waypoint Menu（路径点集 / 地点菜单）
 
+[English](README.en.md) · 中文
+
 一个 **Fabric 客户端** Mod：记录地点坐标，为每个地点挂载一个「指令集」，并在世界中以 **菱形标记 + 名称/距离标签** 高亮显示目标地点。
 
 - 🧭 记录当前位置，随手标记关键地点
@@ -8,11 +10,11 @@
 - ⚡ 每个地点可携带一组指令，一键顺序执行（支持延时）
 - 🗂 按维度筛选、拖拽排序、一键传送、自定义颜色
 
-> 项目代码由AI生成。
+> 项目代码由 AI 生成。
+
 ---
 
 ## 目录
-
 
 - [兼容版本](#兼容版本)
 - [安装](#安装)
@@ -27,33 +29,15 @@
 
 ## 兼容版本
 
-本 Mod 为 **1.20 ~ 1.21.11 的每个小版本**单独构建一个 Jar（共 19 个），每个 Jar 的 `mc_compat` 精确锁定单一版本：
+本 Mod 为 **26.1 与 26.2** 分别构建一个 Jar（共 2 个），每个 Jar 的 `mc_compat` 精确锁定单一版本，且均已实机验证：
 
 | Minecraft | 对应 Jar | 状态 |
 |-----------|----------|------|
-| 1.20 | `waypointmenu-1.0.0+1.20.jar` | ⚠️ 待验证 |
-| 1.20.1 | `waypointmenu-1.0.0+1.20.1.jar` | ✅ 已验证 |
-| 1.20.2 | `waypointmenu-1.0.0+1.20.2.jar` | ⚠️ 待验证 |
-| 1.20.3 | `waypointmenu-1.0.0+1.20.3.jar` | ⚠️ 待验证 |
-| 1.20.4 | `waypointmenu-1.0.0+1.20.4.jar` | ✅ 已验证 |
-| 1.20.5 | `waypointmenu-1.0.0+1.20.5.jar` | ⚠️ 待验证 |
-| 1.20.6 | `waypointmenu-1.0.0+1.20.6.jar` | ⚠️ 待验证 |
-| 1.21 | `waypointmenu-1.0.0+1.21.jar` | ✅ 已验证 |
-| 1.21.1 | `waypointmenu-1.0.0+1.21.1.jar` | ✅ 已验证 |
-| 1.21.2 | `waypointmenu-1.0.0+1.21.2.jar` | ⚠️ 待验证 |
-| 1.21.3 | `waypointmenu-1.0.0+1.21.3.jar` | ⚠️ 待验证 |
-| 1.21.4 | `waypointmenu-1.0.0+1.21.4.jar` | ✅ 已验证 |
-| 1.21.5 | `waypointmenu-1.0.0+1.21.5.jar` | ⚠️ 待验证 |
-| 1.21.6 | `waypointmenu-1.0.0+1.21.6.jar` | ⚠️ 待验证 |
-| 1.21.7 | `waypointmenu-1.0.0+1.21.7.jar` | ⚠️ 待验证 |
-| 1.21.8 | `waypointmenu-1.0.0+1.21.8.jar` | ⚠️ 待验证 |
-| 1.21.9 | `waypointmenu-1.0.0+1.21.9.jar` | ⚠️ 待验证 |
-| 1.21.10 | `waypointmenu-1.0.0+1.21.10.jar` | ⚠️ 待验证 |
-| 1.21.11 | `waypointmenu-1.0.0+1.21.11.jar` | ✅ 已验证 |
+| 26.1 | `waypointmenu-1.0.0+26.1.jar` | ✅ 已验证 |
+| 26.2 | `waypointmenu-1.0.0+26.2.jar` | ✅ 已验证 |
 
-> 说明：
-> - **1.21.9**：Fabric API 的 `rendering-v1 16.0.1` 移除了世界渲染事件（`WorldRenderEvents`），该版本**无世界内 3D 菱形标记**，高亮地点全部退化为「超视距 HUD 标签」方式显示（其余功能正常）。
-> - ✅ 表示此前（按版本区间打包时）已实机验证过的版本；其余版本均已通过构建，但尚未逐版本实机验证。
+> - 26.x 基于 Mojang 官方映射（Mojmap）构建，未混淆（unobfuscated），无需 remapJar。
+> - ✅ 所有版本均已实机验证。
 
 ---
 
@@ -61,10 +45,10 @@
 
 ### 前置依赖
 
-- **Minecraft** 与对应版本的 **Fabric Loader**（推荐 `0.19.3`）
+- **Minecraft 26.1 / 26.2** 与对应版本的 **Fabric Loader**（推荐 `0.19.3`）
 - **Fabric API**（本 Mod 使用 `fabric-rendering-v1` 做世界高亮渲染，需安装对应 MC 版本的 Fabric API）
 - **Mod Menu**（可选，仅用于在游戏内打开配置界面）
-- **Java**：Minecraft 1.20.5+ 需 Java 21；1.20.1 / 1.20.4 用 Java 17
+- **Java**：Minecraft 26.x 需 Java 25
 
 ### 安装步骤
 
@@ -85,7 +69,6 @@
 ---
 
 ## 功能详解
-
 
 ### 地点列表
 
@@ -134,7 +117,6 @@
 - **同维度**：直接 `/tp`。
 - **跨维度**：`/execute in <维度> run tp`，且需同时开启「跨维度传送」，否则提示无法传送。
 
-
 ### 世界内高亮
 
 ![世界内高亮](./images/world_marker.png)
@@ -146,7 +128,6 @@
 ![超视距 HUD 标签](./images/far_label.png)
 
 超出渲染距离后，3D 标记会被引擎远平面裁剪，此时自动切换为**屏幕空间 HUD**，只绘制 `名称 距离` 文字，让你始终知道地点的方位与距离。
-
 
 ### 配置界面
 
@@ -187,18 +168,20 @@
 
 ## 构建（开发者）
 
-使用 [Stonecutter](https://stonecutter.kikugie.dev/) 多版本构建，一份源码编译出多个 MC 版本。
+使用 [Stonecutter](https://stonecutter.kikugie.dev/) 多版本构建，一份源码编译出 26.1 与 26.2（Mojang 映射，未混淆，无 remapJar）。
 
-1. 用 **IntelliJ IDEA** 打开本目录（自动识别 Gradle 项目，下载 Gradle 9.5.1 与依赖）。
-2. 切换目标版本并构建，例如：
+1. 用 **IntelliJ IDEA** 打开本目录（自动识别 Gradle 项目，下载 Gradle 与依赖）。
+2. 构建两个版本：
    ```bash
-   ./gradlew :1.21.11:remapJar      # 构建单个版本
-   ./gradlew :1.20.1:remapJar :1.21.1:remapJar  # 批量构建
+   ./gradlew 26.1:build 26.2:build   # 批量构建 26.1 与 26.2
    ```
-3. 产物位于 `versions/<版本>/build/libs/waypointmenu-1.0.0+<mc_range>.jar`，已汇总副本在 `output/` 目录。
+3. 产物位于：
+   - `versions/26.1/build/libs/waypointmenu-1.0.0+26.1.jar`
+   - `versions/26.2/build/libs/waypointmenu-1.0.0+26.2.jar`
 
-> 首次构建会下载 Minecraft、映射与 Fabric API，耗时较长属正常现象。
-> 各版本依赖（Yarn / Fabric API / Mod Menu）在 `stonecutter.properties.toml` 中集中配置。
+> 首次构建会下载 Minecraft 与 Fabric API，耗时较长属正常现象。
+> 26.x 需要 **Java 25** 工具链。
+> 26.x 为未混淆（unobfuscated）版本：`build.gradle.kts` 直接 `implementation` 依赖 Minecraft，无需 mappings / remapJar。各版本依赖（Fabric API / Mod Menu）在 `stonecutter.properties.toml` 中集中配置。
 
 ---
 
@@ -207,18 +190,17 @@
 ```
 src/main/java/com/waypointmenu/
 ├── WaypointMenuClient.java          入口（组合键检测 + tick + 注册渲染）
+├── ClientCompat.java                跨版本 API 兼容封装（相机 / 图形等）
 ├── command/CommandSetExecutor.java   指令集顺序执行 + #sleep 延迟
 ├── compat/ModMenuIntegration.java    Mod Menu 配置界面入口
-├── config/WaypointConfig.java        配置（不透明度/标签距离/显示标签/组合键等）
+├── config/WaypointConfig.java        配置（不透明度 / 标签距离 / 显示标签 / 组合键等）
 ├── data/Waypoint.java               地点数据模型
 ├── data/WaypointManager.java        列表存储 + 按世界 JSON 持久化 + 高亮状态
-├── mixin/RenderLayerInvoker.java     访问 RenderLayer.of(String, RenderSetup)（1.21.11+）
-├── mixin/RenderPipelinesAccessor.java 访问 position-color 渲染管线（1.21.5+）
+├── mixin/RenderTypeInvoker.java      创建自定义 RenderType（26.1 / 26.2）
+├── mixin/RenderPipelinesAccessor.java 访问 position-color 渲染管线（仅 26.1）
 ├── render/WaypointRenderer.java     世界内高亮渲染 + 超视距 HUD 兜底
 ├── screen/WaypointListScreen.java   地点列表 UI
 ├── screen/WaypointEditScreen.java   地点编辑器（名称/维度/颜色/坐标/指令集/描述）
 ├── screen/WaypointConfigScreen.java 配置界面
 └── ui/Ui.java                       通用 UI 绘制辅助
-src/main/java/net/minecraft/client/render/
-└── WaypointMenuHighlightLayer.java   渲染层辅助（<1.21.5 经典层；1.21.5~1.21.10 管线层）
 ```
