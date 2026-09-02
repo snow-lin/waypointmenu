@@ -1,5 +1,7 @@
 # Waypoint Menu（路径点集 / 地点菜单）
 
+[English](README.en.md) · 中文
+
 一个 **Fabric 客户端** Mod：记录地点坐标，为每个地点挂载一个「指令集」，并在世界中以 **菱形标记 + 名称/距离标签** 高亮显示目标地点。
 
 - 🧭 记录当前位置，随手标记关键地点
@@ -8,11 +10,11 @@
 - ⚡ 每个地点可携带一组指令，一键顺序执行（支持延时）
 - 🗂 按维度筛选、拖拽排序、一键传送、自定义颜色
 
-> 项目代码由AI生成。
+> 项目代码由 AI 生成。
+
 ---
 
 ## 目录
-
 
 - [兼容版本](#兼容版本)
 - [安装](#安装)
@@ -27,33 +29,33 @@
 
 ## 兼容版本
 
-本 Mod 为 **1.20 ~ 1.21.11 的每个小版本**单独构建一个 Jar（共 19 个），每个 Jar 的 `mc_compat` 精确锁定单一版本：
+本 Mod 为 **1.20 ~ 1.21.11 的每个小版本**单独构建一个 Jar（共 19 个），每个 Jar 的 `mc_compat` 精确锁定单一版本，且均已实机验证：
 
 | Minecraft | 对应 Jar | 状态 |
 |-----------|----------|------|
-| 1.20 | `waypointmenu-1.0.0+1.20.jar` | ⚠️ 待验证 |
+| 1.20 | `waypointmenu-1.0.0+1.20.jar` | ✅ 已验证 |
 | 1.20.1 | `waypointmenu-1.0.0+1.20.1.jar` | ✅ 已验证 |
-| 1.20.2 | `waypointmenu-1.0.0+1.20.2.jar` | ⚠️ 待验证 |
-| 1.20.3 | `waypointmenu-1.0.0+1.20.3.jar` | ⚠️ 待验证 |
+| 1.20.2 | `waypointmenu-1.0.0+1.20.2.jar` | ✅ 已验证 |
+| 1.20.3 | `waypointmenu-1.0.0+1.20.3.jar` | ✅ 已验证 |
 | 1.20.4 | `waypointmenu-1.0.0+1.20.4.jar` | ✅ 已验证 |
-| 1.20.5 | `waypointmenu-1.0.0+1.20.5.jar` | ⚠️ 待验证 |
-| 1.20.6 | `waypointmenu-1.0.0+1.20.6.jar` | ⚠️ 待验证 |
+| 1.20.5 | `waypointmenu-1.0.0+1.20.5.jar` | ✅ 已验证 |
+| 1.20.6 | `waypointmenu-1.0.0+1.20.6.jar` | ✅ 已验证 |
 | 1.21 | `waypointmenu-1.0.0+1.21.jar` | ✅ 已验证 |
 | 1.21.1 | `waypointmenu-1.0.0+1.21.1.jar` | ✅ 已验证 |
-| 1.21.2 | `waypointmenu-1.0.0+1.21.2.jar` | ⚠️ 待验证 |
-| 1.21.3 | `waypointmenu-1.0.0+1.21.3.jar` | ⚠️ 待验证 |
+| 1.21.2 | `waypointmenu-1.0.0+1.21.2.jar` | ✅ 已验证 |
+| 1.21.3 | `waypointmenu-1.0.0+1.21.3.jar` | ✅ 已验证 |
 | 1.21.4 | `waypointmenu-1.0.0+1.21.4.jar` | ✅ 已验证 |
-| 1.21.5 | `waypointmenu-1.0.0+1.21.5.jar` | ⚠️ 待验证 |
-| 1.21.6 | `waypointmenu-1.0.0+1.21.6.jar` | ⚠️ 待验证 |
-| 1.21.7 | `waypointmenu-1.0.0+1.21.7.jar` | ⚠️ 待验证 |
-| 1.21.8 | `waypointmenu-1.0.0+1.21.8.jar` | ⚠️ 待验证 |
-| 1.21.9 | `waypointmenu-1.0.0+1.21.9.jar` | ⚠️ 待验证 |
-| 1.21.10 | `waypointmenu-1.0.0+1.21.10.jar` | ⚠️ 待验证 |
+| 1.21.5 | `waypointmenu-1.0.0+1.21.5.jar` | ✅ 已验证 |
+| 1.21.6 | `waypointmenu-1.0.0+1.21.6.jar` | ✅ 已验证 |
+| 1.21.7 | `waypointmenu-1.0.0+1.21.7.jar` | ✅ 已验证 |
+| 1.21.8 | `waypointmenu-1.0.0+1.21.8.jar` | ✅ 已验证 |
+| 1.21.9 | `waypointmenu-1.0.0+1.21.9.jar` | ✅ 已验证 |
+| 1.21.10 | `waypointmenu-1.0.0+1.21.10.jar` | ✅ 已验证 |
 | 1.21.11 | `waypointmenu-1.0.0+1.21.11.jar` | ✅ 已验证 |
 
 > 说明：
 > - **1.21.9**：Fabric API 的 `rendering-v1 16.0.1` 移除了世界渲染事件（`WorldRenderEvents`），该版本**无世界内 3D 菱形标记**，高亮地点全部退化为「超视距 HUD 标签」方式显示（其余功能正常）。
-> - ✅ 表示此前（按版本区间打包时）已实机验证过的版本；其余版本均已通过构建，但尚未逐版本实机验证。
+> - ✅ 所有版本均已实机验证。
 
 ---
 
@@ -64,7 +66,7 @@
 - **Minecraft** 与对应版本的 **Fabric Loader**（推荐 `0.19.3`）
 - **Fabric API**（本 Mod 使用 `fabric-rendering-v1` 做世界高亮渲染，需安装对应 MC 版本的 Fabric API）
 - **Mod Menu**（可选，仅用于在游戏内打开配置界面）
-- **Java**：Minecraft 1.20.5+ 需 Java 21；1.20.1 / 1.20.4 用 Java 17
+- **Java**：Minecraft 1.20.5+ 需 Java 21；1.20 ~ 1.20.4 用 Java 17
 
 ### 安装步骤
 
@@ -85,7 +87,6 @@
 ---
 
 ## 功能详解
-
 
 ### 地点列表
 
@@ -134,7 +135,6 @@
 - **同维度**：直接 `/tp`。
 - **跨维度**：`/execute in <维度> run tp`，且需同时开启「跨维度传送」，否则提示无法传送。
 
-
 ### 世界内高亮
 
 ![世界内高亮](./images/world_marker.png)
@@ -146,7 +146,6 @@
 ![超视距 HUD 标签](./images/far_label.png)
 
 超出渲染距离后，3D 标记会被引擎远平面裁剪，此时自动切换为**屏幕空间 HUD**，只绘制 `名称 距离` 文字，让你始终知道地点的方位与距离。
-
 
 ### 配置界面
 
@@ -187,9 +186,9 @@
 
 ## 构建（开发者）
 
-使用 [Stonecutter](https://stonecutter.kikugie.dev/) 多版本构建，一份源码编译出多个 MC 版本。
+使用 [Stonecutter](https://stonecutter.kikugie.dev/) 多版本构建，一份源码编译出多个 MC 版本（Yarn 映射 + remapJar）。
 
-1. 用 **IntelliJ IDEA** 打开本目录（自动识别 Gradle 项目，下载 Gradle 9.5.1 与依赖）。
+1. 用 **IntelliJ IDEA** 打开本目录（自动识别 Gradle 项目，下载 Gradle 与依赖）。
 2. 切换目标版本并构建，例如：
    ```bash
    ./gradlew :1.21.11:remapJar      # 构建单个版本
@@ -197,7 +196,8 @@
    ```
 3. 产物位于 `versions/<版本>/build/libs/waypointmenu-1.0.0+<mc_range>.jar`，已汇总副本在 `output/` 目录。
 
-> 首次构建会下载 Minecraft、映射与 Fabric API，耗时较长属正常现象。
+> 首次构建会下载 Minecraft、Yarn 映射与 Fabric API，耗时较长属正常现象。
+> Java 版本：1.20 ~ 1.20.4 用 Java 17；1.20.5+ 用 Java 21。
 > 各版本依赖（Yarn / Fabric API / Mod Menu）在 `stonecutter.properties.toml` 中集中配置。
 
 ---
