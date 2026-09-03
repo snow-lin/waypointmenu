@@ -76,6 +76,8 @@ public class WaypointEditScreen extends Screen {
     private final WaypointManager manager = WaypointManager.getInstance();
     private final Waypoint waypoint;
     private final Screen parent;
+    /** Whether this waypoint is not yet in the manager and must be added on save. */
+    private final boolean isNew;
     private final List<String> commands;
 
     private int descH = DESC_MAX_H;
@@ -98,10 +100,11 @@ public class WaypointEditScreen extends Screen {
     private final ButtonWidget[] removeButtons = new ButtonWidget[VISIBLE_COMMANDS];
     private final ButtonWidget[] insertButtons = new ButtonWidget[VISIBLE_COMMANDS];
 
-    public WaypointEditScreen(Waypoint waypoint, Screen parent) {
+    public WaypointEditScreen(Waypoint waypoint, Screen parent, boolean isNew) {
         super(Text.translatable("screen.waypointmenu.edit.title"));
         this.waypoint = waypoint;
         this.parent = parent;
+        this.isNew = isNew;
         this.commands = new ArrayList<>(waypoint.commands == null ? new ArrayList<>() : waypoint.commands);
         this.selectedColor = waypoint.color == 0 ? Waypoint.DEFAULT_COLOR : waypoint.color;
     }
@@ -507,9 +510,19 @@ public class WaypointEditScreen extends Screen {
         }
         waypoint.commands = cleaned;
 
-        manager.markDirty();
+        // A brand-new waypoint is only added to the manager here, so cancelling
+        // the editor never leaves an uncommitted point in the list.
+        if (isNew) {
+            manager.addWaypoint(waypoint);
+        } else {
+            manager.markDirty();
+        }
         if (this.client != null && this.client.player != null) {
-            this.client.player.sendMessage(Text.translatable("waypointmenu.message.saved"), false);
+            if (isNew) {
+                this.client.player.sendMessage(Text.translatable("waypointmenu.message.recorded", waypoint.name), false);
+            } else {
+                this.client.player.sendMessage(Text.translatable("waypointmenu.message.saved"), false);
+            }
         }
         this.close();
     }

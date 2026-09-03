@@ -97,9 +97,21 @@ public class WaypointManager {
                 x, y, z,
                 commands
         );
+        addWaypoint(w);
+        return w;
+    }
+
+    /**
+     * Adds an already-built {@link Waypoint} to the list and persists it.
+     * Used by the editor to commit a newly created waypoint only when saved,
+     * so cancelling the editor leaves the list unchanged.
+     */
+    public void addWaypoint(Waypoint w) {
+        if (w.id == null || w.id.isEmpty()) {
+            w.id = UUID.randomUUID().toString();
+        }
         waypoints.add(w);
         save();
-        return w;
     }
 
     public void removeWaypoint(Waypoint w) {
