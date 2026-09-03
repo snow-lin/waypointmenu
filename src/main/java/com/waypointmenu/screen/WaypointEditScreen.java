@@ -73,6 +73,8 @@ public class WaypointEditScreen extends Screen {
     private final WaypointManager manager = WaypointManager.getInstance();
     private final Waypoint waypoint;
     private final Screen parent;
+    /** Whether this waypoint is not yet in the manager and must be added on save. */
+    private final boolean isNew;
     private final List<String> commands;
 
     private int descH = DESC_MAX_H;
@@ -91,10 +93,11 @@ public class WaypointEditScreen extends Screen {
     private final Button[] removeButtons = new Button[VISIBLE_COMMANDS];
     private final Button[] insertButtons = new Button[VISIBLE_COMMANDS];
 
-    public WaypointEditScreen(Waypoint waypoint, Screen parent) {
+    public WaypointEditScreen(Waypoint waypoint, Screen parent, boolean isNew) {
         super(Component.translatable("screen.waypointmenu.edit.title"));
         this.waypoint = waypoint;
         this.parent = parent;
+        this.isNew = isNew;
         this.commands = new ArrayList<>(waypoint.commands == null ? new ArrayList<>() : waypoint.commands);
         this.selectedColor = waypoint.color == 0 ? Waypoint.DEFAULT_COLOR : waypoint.color;
     }
@@ -404,9 +407,19 @@ public class WaypointEditScreen extends Screen {
         }
         waypoint.commands = cleaned;
 
-        manager.markDirty();
+        // A brand-new waypoint is only added to the manager here, so cancelling
+        // the editor never leaves an uncommitted point in the list.
+        if (isNew) {
+            manager.addWaypoint(waypoint);
+        } else {
+            manager.markDirty();
+        }
         if (this.minecraft != null && this.minecraft.player != null) {
-            this.minecraft.player.sendSystemMessage(Component.translatable("waypointmenu.message.saved"));
+            if (isNew) {
+                this.minecraft.player.sendSystemMessage(Component.translatable("waypointmenu.message.recorded", waypoint.name));
+            } else {
+                this.minecraft.player.sendSystemMessage(Component.translatable("waypointmenu.message.saved"));
+            }
         }
         this.onClose();
     }

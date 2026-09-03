@@ -455,15 +455,23 @@ public class WaypointListScreen extends Screen {
         String dimension = client.level.dimension().identifier().toString();
         BlockPos pos = client.player.blockPosition();
         String name = "Waypoint " + (manager.getWaypoints().size() + 1);
-        Waypoint wp = manager.addWaypoint(name, dimension, pos.getX(), pos.getY(), pos.getZ(), new ArrayList<>());
+        // Build the waypoint but don't add it yet: it is only committed to the
+        // manager when the editor's save button is pressed, so cancelling the
+        // editor leaves the list unchanged.
+        Waypoint wp = new Waypoint("", name, dimension, pos.getX(), pos.getY(), pos.getZ(), new ArrayList<>());
         wp.color = RANDOM_COLORS[RANDOM.nextInt(RANDOM_COLORS.length)];
-        client.player.sendSystemMessage(Component.translatable("waypointmenu.message.recorded", name));
-        openEditor(wp);
+        openNewEditor(wp);
     }
 
     private void openEditor(Waypoint wp) {
         if (this.minecraft != null) {
-            ClientCompat.setScreen(this.minecraft, new WaypointEditScreen(wp, this));
+            ClientCompat.setScreen(this.minecraft, new WaypointEditScreen(wp, this, false));
+        }
+    }
+
+    private void openNewEditor(Waypoint wp) {
+        if (this.minecraft != null) {
+            ClientCompat.setScreen(this.minecraft, new WaypointEditScreen(wp, this, true));
         }
     }
 
