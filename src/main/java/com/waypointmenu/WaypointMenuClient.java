@@ -24,7 +24,10 @@ public class WaypointMenuClient implements ClientModInitializer {
             WaypointManager.getInstance().checkWorldChange();
 
             // Open/close the list when the configured key combination is pressed.
-            if (client.player != null && comboPressed()) {
+            // Track the key edge every tick, but only act while in-game or with
+            // our own list open so typing in chat/commands doesn't trigger it.
+            boolean edge = comboPressed();
+            if (client.player != null && edge && canToggleMenu(client)) {
                 if (ClientCompat.currentScreen(client) instanceof WaypointListScreen) {
                     ClientCompat.setScreen(client, null);
                 } else {
@@ -49,6 +52,11 @@ public class WaypointMenuClient implements ClientModInitializer {
         boolean edge = held && !comboWasHeld;
         comboWasHeld = held;
         return edge;
+    }
+
+    /** True when the combo may act: no screen is capturing input, or our own list is open. */
+    private static boolean canToggleMenu(Minecraft client) {
+        return ClientCompat.currentScreen(client) == null || ClientCompat.currentScreen(client) instanceof WaypointListScreen;
     }
 
     private static boolean allKeysHeld(int[] keys) {
