@@ -188,7 +188,6 @@
 > 26.x 需要 **Java 25** 工具链。
 > 26.x 为未混淆（unobfuscated）版本：`build.gradle.kts` 直接 `implementation` 依赖 Minecraft，无需 mappings / remapJar。各版本依赖（Fabric API / Mod Menu）在 `stonecutter.properties.toml` 中集中配置。
 
----
 
 ## 项目结构
 
