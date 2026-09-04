@@ -358,11 +358,13 @@ public class WaypointListScreen extends Screen {
 
     /** Teleports the player to a waypoint, across dimensions when needed. */
     private void teleport(Waypoint wp) {
-        if (!WaypointConfig.get().rightClickTeleport) {
-            return;
-        }
         Minecraft client = this.minecraft;
         if (client == null || client.player == null || client.level == null) {
+            return;
+        }
+        // Creative players may always teleport, ignoring both toggles.
+        boolean creative = client.player.isCreative();
+        if (!creative && !WaypointConfig.get().rightClickTeleport) {
             return;
         }
         ClientPacketListener handler = client.getConnection();
@@ -375,7 +377,7 @@ public class WaypointListScreen extends Screen {
         // /execute in <dimension> so the destination resolves in that world.
         if (currentDim.equals(wp.dimension)) {
             handler.sendCommand("tp " + coords);
-        } else if (WaypointConfig.get().crossDimensionTeleport) {
+        } else if (creative || WaypointConfig.get().crossDimensionTeleport) {
             handler.sendCommand("execute in " + wp.dimension + " run tp @s " + coords);
         } else {
             client.player.sendOverlayMessage(Component.translatable("waypointmenu.message.cross_dimension_off"));
