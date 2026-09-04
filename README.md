@@ -138,6 +138,7 @@
 - 右键行主体即可传送（需在配置里开启「右键传送」）。
 - **同维度**：直接 `/tp`。
 - **跨维度**：`/execute in <维度> run tp`，且需同时开启「跨维度传送」，否则提示无法传送。
+- **创造模式**：无视「右键传送」「跨维度传送」两个开关，始终可传送（含跨维度）。
 
 ### 世界内高亮
 
@@ -204,7 +205,6 @@
 > Java 版本：1.20 ~ 1.20.4 用 Java 17；1.20.5+ 用 Java 21。
 > 各版本依赖（Yarn / Fabric API / Mod Menu）在 `stonecutter.properties.toml` 中集中配置。
 
----
 
 ## 项目结构
 
@@ -365,6 +365,7 @@ One command per line, run in order:
 - Right-click the row body to teleport (requires "right-click teleport" in config).
 - **Same dimension**: plain `/tp`.
 - **Cross-dimension**: `/execute in <dimension> run tp`; requires "cross-dimension teleport" enabled, otherwise it reports it cannot teleport.
+- **Creative mode**: always allowed, ignoring both toggles (including cross-dimension).
 
 ### In-World Highlight
 
